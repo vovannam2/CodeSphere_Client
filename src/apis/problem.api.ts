@@ -16,6 +16,7 @@ export const problemApi = {
     language?: string;
     bookmarkStatus?: string;
     status?: string;
+    search?: string;
     page?: number;
     size?: number;
     sortBy?: string;

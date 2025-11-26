@@ -27,3 +27,27 @@ export interface User {
   avatar?: string;
 }
 
+export interface UserProfileResponse {
+  userId: number;
+  username: string;
+  email: string;
+  avatar: string | null;
+  dob: string | null; // Date string from backend
+  phoneNumber: string | null;
+  gender: string | null;
+  status: boolean | null;
+  lastOnline: string | null; // ISO string
+  role: string | null;
+  authenWith: number | null; // 0 = Local, 1 = Google
+  isBlocked: boolean | null;
+  createdAt: string | null; // ISO string
+  updatedAt: string | null; // ISO string
+}
+
+export interface UpdateProfileRequest {
+  username?: string;
+  dob?: string | null; // Date string YYYY-MM-DD
+  phoneNumber?: string | null;
+  gender?: string | null;
+}
+

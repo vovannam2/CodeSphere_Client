@@ -339,9 +339,9 @@ const ProblemsPage = () => {
             {!isLoadingCategories && categories.slice(0, 6).map((category) => (
               <button
                 key={category.id}
-                onClick={() => setSelectedTopic(category.id.toString())}
+                onClick={() => setSelectedTopic(category.slug || 'all')}
                 className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
-                  selectedTopic === category.id.toString()
+                  selectedTopic === (category.slug || 'all')
                     ? 'bg-gray-800 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}

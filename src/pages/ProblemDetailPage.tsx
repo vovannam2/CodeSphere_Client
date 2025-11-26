@@ -25,8 +25,9 @@ import { submissionApi, type RunCodeResponse, type CustomTestCase, type Submissi
 import { ROUTES } from '@/utils/constants';
 import type { ProblemDetailResponse } from '@/types/problem.types';
 import toast from 'react-hot-toast';
+import CommentList from '@/components/Comment/CommentList';
 
-type TabType = 'description' | 'editorial' | 'solutions' | 'submissions';
+type TabType = 'description' | 'editorial' | 'solutions' | 'submissions' | 'comments';
 
 const ProblemDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -66,7 +67,7 @@ const ProblemDetailPage = () => {
         
         // Set default language chỉ khi chưa có selectedLanguage hoặc selectedLanguage không có trong danh sách
         if (data.languages && data.languages.length > 0) {
-          setSelectedLanguage((prevLang) => {
+          setSelectedLanguage((prevLang: string) => {
             // Nếu ngôn ngữ hiện tại không có trong danh sách languages của problem này, thì set về ngôn ngữ đầu tiên
             const isCurrentLangAvailable = data.languages.some(lang => lang.code === prevLang);
             if (!isCurrentLangAvailable) {
@@ -665,6 +666,16 @@ const ProblemDetailPage = () => {
                 >
                   Submissions
                 </button>
+                <button
+                  onClick={() => setActiveTab('comments')}
+                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                    activeTab === 'comments'
+                      ? 'text-gray-900 border-b-2 border-gray-900'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Comments
+                </button>
               </div>
 
               {/* Problem Title */}
@@ -739,6 +750,12 @@ const ProblemDetailPage = () => {
               {activeTab === 'solutions' && (
                 <div className="text-center py-12 text-gray-500">
                   Solutions coming soon...
+                </div>
+              )}
+
+              {activeTab === 'comments' && (
+                <div>
+                  <CommentList problemId={problem.id} />
                 </div>
               )}
 

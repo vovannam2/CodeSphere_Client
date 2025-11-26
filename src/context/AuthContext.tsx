@@ -29,11 +29,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const token = storage.getToken();
         
         if (storedUser && token) {
-          setUser(storedUser);
+          // Đảm bảo user object có đầy đủ properties
+          // Lấy id từ nhiều nguồn có thể (id, userId, user_id)
+          const userId = storedUser.id ?? (storedUser as any)?.userId ?? (storedUser as any)?.user_id;
+          
+          if (userId && (typeof userId === 'number' || typeof userId === 'string')) {
+            const userData: User = {
+              id: Number(userId),
+              email: storedUser.email ?? '',
+              username: storedUser.username ?? '',
+              role: storedUser.role ?? '',
+              avatar: storedUser.avatar,
+            };
+            
+            setUser(userData);
+            // Cập nhật lại storage với user object đã được normalize (chỉ nếu cần)
+            if (!storedUser.id || storedUser.id !== userData.id) {
+              storage.setUser(userData);
+            }
+          } else {
+            // Nếu không có id, vẫn set user
+            setUser(storedUser as User);
+          }
         }
       } catch (error) {
         console.error('Error loading user:', error);
-        storage.clear();
+        // Không clear storage ngay, chỉ log error
       } finally {
         setIsLoading(false);
       }
