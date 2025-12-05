@@ -135,7 +135,8 @@ const router = createBrowserRouter([
       </MainLayout>
     ),
   },
- {
+  // -- Admin routes (fixed: object with children) --
+  {
     path: '/admin',
     element: (
       <AdminProtectedRoute>
@@ -160,22 +161,23 @@ const router = createBrowserRouter([
         element: <AdminTagsPage />,
       },
       {
-       path: 'problems',
-       element: <AdminProblemsPage />,
-     },
-     {
-       path: 'problems/new',
-       element: <AdminProblemForm />,
-     },
-     {
-       path: 'problems/:id/edit',
-       element: <AdminProblemForm />,
-     },
+        path: 'problems',
+        element: <AdminProblemsPage />,
+      },
+      {
+        path: 'problems/new',
+        element: <AdminProblemForm />,
+      },
+      {
+        path: 'problems/:id/edit',
+        element: <AdminProblemForm />,
+      },
       {
         path: 'testcases',
         element: <AdminTestcasesPage />,
       },
     ],
+  },
   {
     path: ROUTES.MESSAGES,
     element: (
@@ -199,4 +201,3 @@ const router = createBrowserRouter([
 ]);
 
 export default router;
-
