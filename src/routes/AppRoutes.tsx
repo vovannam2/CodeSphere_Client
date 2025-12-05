@@ -7,7 +7,16 @@ import LoginPage from '@/pages/LoginPage';
 import RegisterPage from '@/pages/RegisterPage';
 import OAuth2RedirectPage from '@/pages/OAuth2RedirectPage';
 import ProblemsPage from '@/pages/ProblemsPage';
-import ProblemDetailPage from '@/pages/ProblemDetailPage/index';
+
+import AdminProtectedRoute from '@/routes/AdminProtectedRoute';
+import AdminLayout from '@/layouts/LayoutsAdmin/AdminLayout';
+import AdminDashboard from '@/pages/admin/Dashboard/AdminDashboard';
+import AdminLanguagesPage from '@/pages/admin/AdminLanguagesPage';
+import AdminCategoriesPage from '@/pages/admin/AdminCategoriesPage';
+import AdminProblemsPage from '@/pages/admin/AdminProblemsPage';
+import AdminProblemForm from '@/pages/admin/AdminProblemForm';
+import AdminTagsPage from '@/pages/admin/AdminTagsPage';
+import AdminTestcasesPage from '@/pages/admin/AdminTestcasesPage';
 import ProfilePage from '@/pages/ProfilePage';
 import PublicProfilePage from '@/pages/PublicProfilePage';
 import DiscussPage from '@/pages/DiscussPage';
@@ -56,6 +65,7 @@ const router = createBrowserRouter([
   },
   {
     path: `${ROUTES.PROBLEMS}/:id`,
+
     element: <ProblemDetailPage />,
   },
   {
@@ -121,6 +131,49 @@ const router = createBrowserRouter([
       </MainLayout>
     ),
   },
+  // -- Admin routes (fixed: object with children) --
+  {
+    path: '/admin',
+    element: (
+      <AdminProtectedRoute>
+        <AdminLayout />
+      </AdminProtectedRoute>
+    ),
+    children: [
+      {
+        index: true,
+        element: <AdminDashboard />,
+      },
+      {
+        path: 'languages',
+        element: <AdminLanguagesPage />,
+      },
+      {
+        path: 'categories',
+        element: <AdminCategoriesPage />,
+      },
+      {
+        path: 'tags',
+        element: <AdminTagsPage />,
+      },
+      {
+        path: 'problems',
+        element: <AdminProblemsPage />,
+      },
+      {
+        path: 'problems/new',
+        element: <AdminProblemForm />,
+      },
+      {
+        path: 'problems/:id/edit',
+        element: <AdminProblemForm />,
+      },
+      {
+        path: 'testcases',
+        element: <AdminTestcasesPage />,
+      },
+    ],
+  },
   {
     path: ROUTES.MESSAGES,
     element: (
@@ -143,5 +196,5 @@ const router = createBrowserRouter([
   },
 ]);
 
-export default router;
 
+export default router;
