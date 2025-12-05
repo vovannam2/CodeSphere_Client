@@ -1,6 +1,6 @@
 import apiClient from './apiClient';
 import type { DataResponse } from '@/types/common.types';
-import type { ConversationResponse, CreateConversationRequest } from '@/types/conversation.types';
+import type { ConversationResponse, CreateConversationRequest, AddMemberRequest, TransferAdminRequest } from '@/types/conversation.types';
 
 export const conversationApi = {
   getConversations: async (): Promise<ConversationResponse[]> => {
@@ -25,6 +25,36 @@ export const conversationApi = {
       participantIds: [otherUserId],
     };
     return conversationApi.createConversation(request);
+  },
+
+  addMember: async (conversationId: number, request: AddMemberRequest): Promise<ConversationResponse> => {
+    const response = await apiClient.post<DataResponse<ConversationResponse>>(
+      `/conversations/${conversationId}/members`,
+      request
+    );
+    return response.data.data!;
+  },
+
+  removeMember: async (conversationId: number, memberId: number): Promise<void> => {
+    await apiClient.delete<DataResponse<string>>(
+      `/conversations/${conversationId}/members/${memberId}`
+    );
+  },
+
+  leaveGroup: async (conversationId: number, newAdminId?: number): Promise<void> => {
+    const request = newAdminId ? { newAdminId } : undefined;
+    await apiClient.post<DataResponse<string>>(
+      `/conversations/${conversationId}/leave`,
+      request
+    );
+  },
+
+  transferAdmin: async (conversationId: number, request: TransferAdminRequest): Promise<ConversationResponse> => {
+    const response = await apiClient.post<DataResponse<ConversationResponse>>(
+      `/conversations/${conversationId}/transfer-admin`,
+      request
+    );
+    return response.data.data!;
   },
 };
 

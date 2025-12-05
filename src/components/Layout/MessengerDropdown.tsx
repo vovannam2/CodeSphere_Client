@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { FiMessageSquare } from 'react-icons/fi';
 import Avatar from '@/components/Avatar';
 import { ROUTES } from '@/utils/constants';
 import { conversationApi } from '@/apis/conversation.api';
@@ -8,15 +9,19 @@ import { useAuth } from '@/hooks/useAuth';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import toast from 'react-hot-toast';
+import Tooltip from './Tooltip';
 
 const MessengerDropdown = () => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [conversations, setConversations] = useState<ConversationResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const isActive = location.pathname === ROUTES.MESSAGES || location.pathname.startsWith(ROUTES.MESSAGES + '/');
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -67,29 +72,24 @@ const MessengerDropdown = () => {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-xl transition-all duration-200 group"
-      >
-        <svg
-          className="w-6 h-6 transition-transform group-hover:scale-110"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
+      <Tooltip text="Tin nhắn">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className={`relative p-2 rounded-full transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-gray-100 ${
+            isActive
+              ? 'text-blue-600 bg-blue-100'
+              : 'text-gray-600'
+          }`}
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-          />
-        </svg>
-        {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 block h-5 w-5 rounded-full bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold flex items-center justify-center shadow-md shadow-red-500/30 border-2 border-white">
-            {unreadCount > 9 ? '9+' : unreadCount}
-          </span>
-        )}
-      </button>
+          <FiMessageSquare className="w-6 h-6 transition-transform duration-200 group-hover:scale-110" />
+          {/* Unread badge */}
+          {unreadCount > 0 && (
+            <span className="absolute top-0 right-0 block h-4 w-4 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center border-2 border-white">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
+        </button>
+      </Tooltip>
 
       {isOpen && (
         <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg z-50 border border-gray-200 max-h-96 overflow-y-auto">
@@ -106,16 +106,13 @@ const MessengerDropdown = () => {
           <div className="divide-y divide-gray-200">
             {loading ? (
               <div className="p-4 text-center text-gray-500 text-sm">Đang tải...</div>
-            ) : conversations.length > 0 ? (
+            ) : conversations.length === 0 ? (
+              <div className="p-4 text-center text-gray-500 text-sm">
+                Chưa có tin nhắn nào
+              </div>
+            ) : (
               conversations.slice(0, 5).map((conversation) => {
                 const otherUser = getOtherUser(conversation);
-                const displayName = conversation.type === 'DIRECT' && otherUser
-                  ? otherUser.username
-                  : conversation.name || 'Nhóm chat';
-                const displayAvatar = conversation.type === 'DIRECT' && otherUser
-                  ? otherUser.avatar
-                  : conversation.avatar;
-
                 return (
                   <div
                     key={conversation.id}
@@ -123,41 +120,46 @@ const MessengerDropdown = () => {
                       navigate(`${ROUTES.MESSAGES}/${conversation.id}`);
                       setIsOpen(false);
                     }}
-                    className="flex items-center p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                    className="p-4 hover:bg-gray-50 cursor-pointer transition-colors"
                   >
-                    <Avatar
-                      src={displayAvatar || undefined}
-                      alt={displayName}
-                      size="md"
-                      className="mr-3"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {displayName}
+                    <div className="flex items-start gap-3">
+                      {conversation.type === 'DIRECT' && otherUser ? (
+                        <Avatar
+                          src={otherUser.avatar}
+                          username={otherUser.username}
+                          size="sm"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold text-sm">
+                          {conversation.type === 'GROUP' ? 'G' : '?'}
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {conversation.type === 'DIRECT' && otherUser
+                              ? otherUser.username
+                              : conversation.name || 'Nhóm'}
+                          </p>
+                          {conversation.lastMessage && (
+                            <span className="text-xs text-gray-500 ml-2">
+                              {formatTime(conversation.lastMessage.createdAt)}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-600 truncate">
+                          {conversation.lastMessage?.content || 'Chưa có tin nhắn'}
                         </p>
-                        {conversation.unreadCount > 0 && (
-                          <span className="ml-2 flex-shrink-0 h-5 w-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center">
-                            {conversation.unreadCount > 9 ? '9+' : conversation.unreadCount}
+                        {conversation.unreadCount && conversation.unreadCount > 0 && (
+                          <span className="inline-block mt-1 px-2 py-0.5 bg-blue-600 text-white text-xs font-bold rounded-full">
+                            {conversation.unreadCount}
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-gray-500 truncate mt-1">
-                        {conversation.lastMessage?.content || 'Chưa có tin nhắn'}
-                      </p>
-                      {conversation.lastMessage && (
-                        <p className="text-xs text-gray-400 mt-1">
-                          {formatTime(conversation.lastMessage.createdAt)}
-                        </p>
-                      )}
                     </div>
                   </div>
                 );
               })
-            ) : (
-              <div className="p-4 text-center text-gray-500 text-sm">
-                Không có tin nhắn
-              </div>
             )}
           </div>
         </div>

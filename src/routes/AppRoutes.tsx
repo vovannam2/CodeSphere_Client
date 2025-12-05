@@ -7,13 +7,14 @@ import LoginPage from '@/pages/LoginPage';
 import RegisterPage from '@/pages/RegisterPage';
 import OAuth2RedirectPage from '@/pages/OAuth2RedirectPage';
 import ProblemsPage from '@/pages/ProblemsPage';
-import ProblemDetailPage from '@/pages/ProblemDetailPage';
+import ProblemDetailPage from '@/pages/ProblemDetailPage/index';
 import ProfilePage from '@/pages/ProfilePage';
 import PublicProfilePage from '@/pages/PublicProfilePage';
 import DiscussPage from '@/pages/DiscussPage';
 import CreatePostPage from '@/pages/CreatePostPage';
 import PostDetailPage from '@/pages/PostDetailPage';
 import MessagesPage from '@/pages/MessagesPage';
+import LeaderboardPage from '@/pages/LeaderboardPage';
 import { ROUTES } from '@/utils/constants';
 
 const router = createBrowserRouter([
@@ -55,11 +56,7 @@ const router = createBrowserRouter([
   },
   {
     path: `${ROUTES.PROBLEMS}/:id`,
-    element: (
-      <MainLayout>
-        <ProblemDetailPage />
-      </MainLayout>
-    ),
+    element: <ProblemDetailPage />,
   },
   {
     path: ROUTES.PROFILE,
@@ -120,9 +117,7 @@ const router = createBrowserRouter([
     path: ROUTES.LEADERBOARD,
     element: (
       <MainLayout>
-        <div className="py-12 text-center">
-          <h1 className="text-2xl font-bold">Leaderboard Page - Coming Soon</h1>
-        </div>
+        <LeaderboardPage />
       </MainLayout>
     ),
   },

@@ -454,12 +454,12 @@ const ProblemsPage = () => {
                       index !== problems.length - 1 ? 'border-b border-gray-200' : ''
                     }`}
                   >
-                    {/* Status Icon - chỉ hiển thị khi đã làm (COMPLETED) */}
-                    {problem.status === 'COMPLETED' && (
-                      <div className="flex-shrink-0 pt-1">
+                    {/* Status Icon - luôn có để giữ layout đồng nhất */}
+                    <div className="flex-shrink-0 pt-1 w-5 h-5 flex items-center justify-center">
+                      {problem.status === 'COMPLETED' && (
                         <FiCheckCircle className="w-5 h-5 text-green-500" />
-                      </div>
-                    )}
+                      )}
+                    </div>
 
                     {/* Main Content */}
                     <Link

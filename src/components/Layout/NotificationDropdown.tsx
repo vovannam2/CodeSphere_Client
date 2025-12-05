@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/utils/constants';
 import { notificationApi, type NotificationResponse } from '@/apis/notification.api';
 import { websocketService } from '@/services/websocket.service';
@@ -8,15 +8,19 @@ import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import Avatar from '@/components/Avatar';
 import toast from 'react-hot-toast';
+import Tooltip from './Tooltip';
 
 const NotificationDropdown = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState<NotificationResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const isActive = location.pathname === ROUTES.NOTIFICATIONS || location.pathname.startsWith(ROUTES.NOTIFICATIONS + '/');
 
   useEffect(() => {
     if (user) {
@@ -131,12 +135,13 @@ const NotificationDropdown = () => {
     }
 
     // Navigate based on notification type
-    if (notification.relatedPostId) {
+    // Ưu tiên kiểm tra conversationId trước (cho MESSAGE notification)
+    if (notification.relatedConversationId) {
+      navigate(`/messages/${notification.relatedConversationId}`);
+    } else if (notification.relatedPostId) {
       navigate(`/discuss/${notification.relatedPostId}`);
     } else if (notification.relatedUserId) {
       navigate(`/users/${notification.relatedUserId}`);
-    } else if (notification.relatedConversationId) {
-      navigate(`/messages`);
     }
 
     setIsOpen(false);
@@ -172,29 +177,35 @@ const NotificationDropdown = () => {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-xl transition-all duration-200 group"
-      >
-        <svg
-          className="w-6 h-6 transition-transform group-hover:scale-110"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
+      <Tooltip text="Thông báo">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className={`relative p-2 rounded-full transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-gray-100 ${
+            isActive
+              ? 'text-blue-600 bg-blue-100'
+              : 'text-gray-600'
+          }`}
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-          />
-        </svg>
-        {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 block h-5 w-5 rounded-full bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold flex items-center justify-center shadow-md shadow-red-500/30 border-2 border-white">
-            {unreadCount > 9 ? '9+' : unreadCount}
-          </span>
-        )}
-      </button>
+          <svg
+            className="w-6 h-6 transition-transform duration-200 group-hover:scale-110"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+            />
+          </svg>
+          {unreadCount > 0 && (
+            <span className="absolute top-0 right-0 block h-4 w-4 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center border-2 border-white">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
+        </button>
+      </Tooltip>
 
       {isOpen && (
         <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg z-50 border border-gray-200 max-h-96 overflow-y-auto">

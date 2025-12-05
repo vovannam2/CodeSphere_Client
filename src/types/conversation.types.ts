@@ -27,7 +27,7 @@ export interface MessageResponse {
   senderName: string;
   senderAvatar: string | null;
   content: string | null;
-  messageType: 'TEXT' | 'IMAGE';
+  messageType: 'TEXT' | 'IMAGE' | 'FILE' | 'SYSTEM';
   imageUrl: string | null;
   isDeleted: boolean;
   createdAt: string;
@@ -45,5 +45,13 @@ export interface SendMessageRequest {
   content?: string;
   messageType: 'TEXT' | 'IMAGE';
   imageUrl?: string;
+}
+
+export interface AddMemberRequest {
+  userIds: number[];
+}
+
+export interface TransferAdminRequest {
+  newAdminId: number;
 }
 

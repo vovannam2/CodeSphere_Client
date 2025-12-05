@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { FiAward } from 'react-icons/fi';
 import { useAuth } from '@/hooks/useAuth';
 import { ROUTES } from '@/utils/constants';
 import Button from '@/components/Button';
@@ -20,6 +21,9 @@ const Header = () => {
   ];
 
   const isActive = (path: string) => {
+    // Chỉ active khi pathname chính xác bằng path hoặc bắt đầu bằng path + '/'
+    // Nhưng không active nếu pathname là '/' (home page)
+    if (location.pathname === '/') return false;
     return location.pathname === path || location.pathname.startsWith(path + '/');
   };
 
@@ -122,7 +126,7 @@ const Header = () => {
           )}
 
           {/* Right side - Search Bar and User menu */}
-          <div className="flex items-center space-x-3 flex-shrink-0 ml-auto">
+          <div className="flex items-center gap-2 flex-shrink-0 ml-auto">
             {isAuthenticated ? (
               <>
                 {/* Search Bar - LeetCode style */}
@@ -146,26 +150,23 @@ const Header = () => {
                   </div>
                 </form>
 
-                {/* Community/Users Icon */}
-                <Link
-                  to={ROUTES.LEADERBOARD}
-                  className="relative p-2.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 group"
-                  title="Leaderboard"
-                >
-                  <svg
-                    className="w-6 h-6 transition-transform group-hover:scale-110"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                {/* Leaderboard Icon */}
+                <div className="relative group">
+                  <Link
+                    to={ROUTES.LEADERBOARD}
+                    className={`block p-2 rounded-full transition-all duration-200 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      isActive(ROUTES.LEADERBOARD)
+                        ? 'text-blue-600 bg-blue-100'
+                        : 'text-gray-600'
+                    }`}
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                    />
-                  </svg>
-                </Link>
+                    <FiAward className="w-6 h-6 transition-transform duration-200 group-hover:scale-110" />
+                  </Link>
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 px-2.5 py-1.5 bg-gray-900 text-white text-xs font-medium rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none shadow-lg">
+                    Leaderboard
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 w-0 h-0 border-4 border-b-gray-900 border-l-transparent border-r-transparent border-t-transparent" />
+                  </div>
+                </div>
                 <MessengerDropdown />
                 <NotificationDropdown />
                 <UserMenu />

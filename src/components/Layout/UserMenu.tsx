@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import Avatar from '@/components/Avatar';
 import { ROUTES } from '@/utils/constants';
+import Tooltip from './Tooltip';
 
 const UserMenu = () => {
   const { user, logout } = useAuth();
@@ -31,23 +32,25 @@ const UserMenu = () => {
 
   return (
     <div className="relative" ref={menuRef}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg p-1"
-      >
-        <Avatar user={user} size="sm" />
-        <span className="hidden md:block text-sm font-medium text-gray-700">
-          {user.username}
-        </span>
-        <svg
-          className={`w-4 h-4 text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
+      <Tooltip text="Tài khoản">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-full p-1 hover:bg-gray-100 transition-colors duration-200"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
+          <Avatar user={user} size="sm" />
+          <span className="hidden md:block text-sm font-medium text-gray-700">
+            {user.username}
+          </span>
+          <svg
+            className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+      </Tooltip>
 
       {isOpen && (
         <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50 border border-gray-200">
