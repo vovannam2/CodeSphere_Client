@@ -1,0 +1,53 @@
+import apiClient from './apiClient';
+import type { DataResponse } from '@/types/common.types';
+import type { PostResponse, PostDetailResponse, CreatePostRequest, VoteRequest, VoteResponse } from '@/types/post.types';
+
+export interface GetPostsParams {
+  authorId?: number;
+  tag?: string;
+  isResolved?: boolean;
+  search?: string;
+  followedOnly?: boolean;
+  page?: number;
+  size?: number;
+  sortBy?: string;
+  sortDir?: 'ASC' | 'DESC';
+}
+
+export const postApi = {
+  getPosts: async (params: GetPostsParams = {}) => {
+    const response = await apiClient.get<DataResponse<{
+      content: PostResponse[];
+      totalElements: number;
+      totalPages: number;
+      number: number;
+      size: number;
+    }>>('/posts', { params });
+    return response.data.data!;
+  },
+
+  getPostById: async (id: number): Promise<PostDetailResponse> => {
+    const response = await apiClient.get<DataResponse<PostDetailResponse>>(`/posts/${id}`);
+    return response.data.data!;
+  },
+
+  createPost: async (data: CreatePostRequest): Promise<PostDetailResponse> => {
+    const response = await apiClient.post<DataResponse<PostDetailResponse>>('/posts', data);
+    return response.data.data!;
+  },
+
+  updatePost: async (id: number, data: Partial<CreatePostRequest>): Promise<PostDetailResponse> => {
+    const response = await apiClient.put<DataResponse<PostDetailResponse>>(`/posts/${id}`, data);
+    return response.data.data!;
+  },
+
+  deletePost: async (id: number): Promise<void> => {
+    await apiClient.delete(`/posts/${id}`);
+  },
+
+  votePost: async (id: number, voteType: number): Promise<VoteResponse> => {
+    const response = await apiClient.post<DataResponse<VoteResponse>>(`/posts/${id}/vote`, { vote: voteType });
+    return response.data.data!;
+  },
+};
+

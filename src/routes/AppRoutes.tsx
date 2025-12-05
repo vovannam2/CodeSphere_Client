@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom';
 import MainLayout from '@/components/Layout/MainLayout';
 import PublicRoute from './PublicRoute';
+import ProtectedRoute from './ProtectedRoute';
 import HomePage from '@/pages/HomePage';
 import LoginPage from '@/pages/LoginPage';
 import RegisterPage from '@/pages/RegisterPage';
@@ -16,6 +17,12 @@ import AdminProblemsPage from '@/pages/admin/AdminProblemsPage';
 import AdminProblemForm from '@/pages/admin/AdminProblemForm';
 import AdminTagsPage from '@/pages/admin/AdminTagsPage';
 import AdminTestcasesPage from '@/pages/admin/AdminTestcasesPage';
+import ProfilePage from '@/pages/ProfilePage';
+import PublicProfilePage from '@/pages/PublicProfilePage';
+import DiscussPage from '@/pages/DiscussPage';
+import CreatePostPage from '@/pages/CreatePostPage';
+import PostDetailPage from '@/pages/PostDetailPage';
+import MessagesPage from '@/pages/MessagesPage';
 import { ROUTES } from '@/utils/constants';
 
 const router = createBrowserRouter([
@@ -63,6 +70,24 @@ const router = createBrowserRouter([
       </MainLayout>
     ),
   },
+  {
+    path: ROUTES.PROFILE,
+    element: (
+      <ProtectedRoute>
+        <MainLayout>
+          <ProfilePage />
+        </MainLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/users/:userId',
+    element: (
+      <MainLayout>
+        <PublicProfilePage />
+      </MainLayout>
+    ),
+  },
   // Placeholder routes - sẽ implement sau
   {
     path: ROUTES.CONTEST,
@@ -75,12 +100,28 @@ const router = createBrowserRouter([
     ),
   },
   {
+    path: ROUTES.CREATE_POST,
+    element: (
+      <ProtectedRoute>
+        <MainLayout>
+          <CreatePostPage />
+        </MainLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
     path: ROUTES.DISCUSS,
     element: (
       <MainLayout>
-        <div className="py-12 text-center">
-          <h1 className="text-2xl font-bold">Discuss Page - Coming Soon</h1>
-        </div>
+        <DiscussPage />
+      </MainLayout>
+    ),
+  },
+  {
+    path: `${ROUTES.DISCUSS}/:id`,
+    element: (
+      <MainLayout>
+        <PostDetailPage />
       </MainLayout>
     ),
   },
@@ -135,6 +176,25 @@ const router = createBrowserRouter([
         element: <AdminTestcasesPage />,
       },
     ],
+  {
+    path: ROUTES.MESSAGES,
+    element: (
+      <ProtectedRoute>
+        <MainLayout>
+          <MessagesPage />
+        </MainLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: `${ROUTES.MESSAGES}/:conversationId`,
+    element: (
+      <ProtectedRoute>
+        <MainLayout>
+          <MessagesPage />
+        </MainLayout>
+      </ProtectedRoute>
+    ),
   },
 ]);
 

@@ -1,12 +1,28 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Avatar from '@/components/Avatar';
 import { ROUTES } from '@/utils/constants';
+import { conversationApi } from '@/apis/conversation.api';
+import type { ConversationResponse } from '@/types/conversation.types';
+import { useAuth } from '@/hooks/useAuth';
+import { formatDistanceToNow } from 'date-fns';
+import { vi } from 'date-fns/locale';
+import toast from 'react-hot-toast';
 
 const MessengerDropdown = () => {
+  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
-  const [unreadCount] = useState(2); // Mock data - sẽ lấy từ API sau
+  const [conversations, setConversations] = useState<ConversationResponse[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      fetchConversations();
+    }
+  }, [isAuthenticated, user]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -19,23 +35,35 @@ const MessengerDropdown = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Mock conversations
-  const conversations = [
-    {
-      id: 1,
-      user: { id: 1, email: 'john@example.com', username: 'John Doe', role: 'USER' },
-      lastMessage: 'Xin chào! Bạn có thể giúp tôi với problem này không?',
-      time: '5 phút trước',
-      unread: 2,
-    },
-    {
-      id: 2,
-      user: { id: 2, email: 'jane@example.com', username: 'Jane Smith', role: 'USER' },
-      lastMessage: 'Cảm ơn bạn đã giúp đỡ!',
-      time: '1 giờ trước',
-      unread: 0,
-    },
-  ];
+  const fetchConversations = async () => {
+    try {
+      setLoading(true);
+      const data = await conversationApi.getConversations();
+      setConversations(data);
+      const totalUnread = data.reduce((sum, conv) => sum + (conv.unreadCount || 0), 0);
+      setUnreadCount(totalUnread);
+    } catch (error: any) {
+      console.error('Error fetching conversations:', error);
+      toast.error('Có lỗi xảy ra khi tải tin nhắn');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getOtherUser = (conversation: ConversationResponse) => {
+    if (conversation.type === 'DIRECT' && conversation.participants) {
+      return conversation.participants.find((p) => p.userId !== user?.id);
+    }
+    return null;
+  };
+
+  const formatTime = (dateString: string) => {
+    try {
+      return formatDistanceToNow(new Date(dateString), { addSuffix: true, locale: vi });
+    } catch {
+      return dateString;
+    }
+  };
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -76,36 +104,59 @@ const MessengerDropdown = () => {
             </Link>
           </div>
           <div className="divide-y divide-gray-200">
-            {conversations.length > 0 ? (
-              conversations.map((conversation) => (
-                <Link
-                  key={conversation.id}
-                  to={`${ROUTES.MESSAGES}/${conversation.id}`}
-                  className="flex items-center p-4 hover:bg-gray-50 transition-colors"
-                  onClick={() => setIsOpen(false)}
-                >
-                  <Avatar user={conversation.user} size="md" className="mr-3" />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {conversation.user.username}
+            {loading ? (
+              <div className="p-4 text-center text-gray-500 text-sm">Đang tải...</div>
+            ) : conversations.length > 0 ? (
+              conversations.slice(0, 5).map((conversation) => {
+                const otherUser = getOtherUser(conversation);
+                const displayName = conversation.type === 'DIRECT' && otherUser
+                  ? otherUser.username
+                  : conversation.name || 'Nhóm chat';
+                const displayAvatar = conversation.type === 'DIRECT' && otherUser
+                  ? otherUser.avatar
+                  : conversation.avatar;
+
+                return (
+                  <div
+                    key={conversation.id}
+                    onClick={() => {
+                      navigate(`${ROUTES.MESSAGES}/${conversation.id}`);
+                      setIsOpen(false);
+                    }}
+                    className="flex items-center p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                  >
+                    <Avatar
+                      src={displayAvatar || undefined}
+                      alt={displayName}
+                      size="md"
+                      className="mr-3"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {displayName}
+                        </p>
+                        {conversation.unreadCount > 0 && (
+                          <span className="ml-2 flex-shrink-0 h-5 w-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center">
+                            {conversation.unreadCount > 9 ? '9+' : conversation.unreadCount}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500 truncate mt-1">
+                        {conversation.lastMessage?.content || 'Chưa có tin nhắn'}
                       </p>
-                      {conversation.unread > 0 && (
-                        <span className="ml-2 flex-shrink-0 h-5 w-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center">
-                          {conversation.unread}
-                        </span>
+                      {conversation.lastMessage && (
+                        <p className="text-xs text-gray-400 mt-1">
+                          {formatTime(conversation.lastMessage.createdAt)}
+                        </p>
                       )}
                     </div>
-                    <p className="text-xs text-gray-500 truncate mt-1">
-                      {conversation.lastMessage}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-1">{conversation.time}</p>
                   </div>
-                </Link>
-              ))
+                );
+              })
             ) : (
               <div className="p-4 text-center text-gray-500 text-sm">
-                Không có tin nhắn mới
+                Không có tin nhắn
               </div>
             )}
           </div>

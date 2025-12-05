@@ -22,6 +22,7 @@ export const ROUTES = {
   SUBMISSIONS: '/submissions',
   MESSAGES: '/messages',
   NOTIFICATIONS: '/notifications',
+  CREATE_POST: '/discuss/create',
 } as const;
 
 export const STORAGE_KEYS = {

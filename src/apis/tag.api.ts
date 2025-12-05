@@ -1,14 +1,17 @@
 import apiClient from './apiClient';
+import type { DataResponse } from '@/types/common.types';
+import type { TagResponse } from '@/types/post.types';
 
 export const tagApi = {
-  getAllTags: async () => {
-    const res = await apiClient.get('/tags');
-    return res.data?.data ?? res.data ?? [];
+  getAllTags: async (type?: 'POST' | 'PROBLEM'): Promise<TagResponse[]> => {
+    const params = type ? { type } : undefined;
+    const res = await apiClient.get<DataResponse<TagResponse[]>>('/tags', { params });
+    return res.data.data ?? [];
   },
 
-  getTag: async (id: number) => {
-    const res = await apiClient.get(`/tags/${id}`);
-    return res.data?.data ?? res.data;
+  getTag: async (id: number): Promise<TagResponse | null> => {
+    const res = await apiClient.get<DataResponse<TagResponse>>(`/tags/${id}`);
+    return res.data.data ?? null;
   },
 };
 
