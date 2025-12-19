@@ -1,183 +1,186 @@
-// ...existing code...
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FiBox, FiFileText, FiTag, FiPlus, FiRefreshCw } from 'react-icons/fi';
-import Container from '@/components/Layout/Container';
+import { FiBox, FiFileText, FiTag, FiPlus, FiRefreshCw, FiUsers, FiAward, FiActivity, FiArrowUpRight, FiClock, FiMessageSquare, FiGlobe } from 'react-icons/fi';
 import Loading from '@/components/Loading';
-import { problemApi } from '@/apis/problem.api';
-import { categoryApi } from '@/apis/category.api';
-import apiClient from '@/apis/apiClient';
+import { adminApi } from '@/apis/admin.api';
 import { ROUTES } from '@/utils/constants';
+import type { DashboardStatsResponse } from '@/types/admin.types';
+import AdminStatCard from '@/components/Admin/AdminStatCard';
+import AdminPageHeader from '@/components/Admin/AdminPageHeader';
 
-const StatCard = ({ title, count, to, icon, color = 'blue' }: any) => (
-  <Link
-    to={to}
-    className={`group block p-5 rounded-xl shadow-sm hover:shadow-md transition bg-white border border-gray-100`}
-  >
-    <div className="flex items-center justify-between">
-      <div>
-        <div className="text-xs text-gray-400">{title}</div>
-        <div className="mt-2 text-3xl font-bold text-gray-900">{count ?? '-'}</div>
-        <div className="mt-1 text-sm text-gray-500">Manage {title.toLowerCase()}</div>
-      </div>
-      <div className={`flex items-center justify-center w-14 h-14 rounded-lg bg-${color}-50 text-${color}-600 group-hover:scale-105 transition`}>
-        <div className="text-2xl">{icon}</div>
-      </div>
-    </div>
-  </Link>
-);
+const RecentActivityItem = ({ text, time, icon, color = 'blue' }: any) => {
+  const colorMap = {
+    blue: 'bg-blue-50 text-blue-600',
+    green: 'bg-green-50 text-green-600',
+    purple: 'bg-purple-50 text-purple-600',
+    orange: 'bg-orange-50 text-orange-600',
+  };
 
-const RecentItem = ({ text, time }: any) => (
-  <div className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded">
-    <div className="w-2.5 h-2.5 bg-blue-500 rounded-full mt-2" />
-    <div className="flex-1">
-      <div className="text-sm text-gray-800">{text}</div>
-      <div className="text-xs text-gray-400 mt-1">{time}</div>
+  return (
+    <div className="flex items-center gap-4 p-4 hover:bg-slate-50 transition-colors">
+      <div className={`p-2 rounded-lg ${colorMap[color as keyof typeof colorMap]}`}>
+        {icon}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-slate-900 truncate">{text}</p>
+        <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
+          <FiClock size={12} />
+          {time}
+        </p>
+      </div>
+      <button className="p-2 text-slate-400 hover:text-blue-600 transition-colors">
+        <FiArrowUpRight size={18} />
+      </button>
     </div>
-  </div>
-);
+  );
+};
 
 const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
-  const [problemsCount, setProblemsCount] = useState<number | null>(null);
-  const [categoriesCount, setCategoriesCount] = useState<number | null>(null);
-  const [languagesCount, setLanguagesCount] = useState<number | null>(null);
+  const [stats, setStats] = useState<DashboardStatsResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  // animated display values
-  const [pDisplay, setPDisplay] = useState<number>(0);
-  const [cDisplay, setCDisplay] = useState<number>(0);
-  const [lDisplay, setLDisplay] = useState<number>(0);
 
   useEffect(() => {
     (async () => {
       setLoading(true);
       setError(null);
       try {
-        const problemsRes = await problemApi.getProblems({
-          page: 0,
-          size: 1,
-          sortBy: 'createdAt',
-          sortDir: 'DESC',
-        });
-        const pCount = (problemsRes as any)?.totalElements ?? (problemsRes as any)?.total ?? null;
-        setProblemsCount(typeof pCount === 'number' ? pCount : null);
-
-        const cats = await categoryApi.getAllCategories();
-        const cCount = Array.isArray(cats) ? cats.length : (cats as any)?.totalElements ?? null;
-        setCategoriesCount(typeof cCount === 'number' ? cCount : null);
-
-        try {
-          const langRes = await apiClient.get('/languages');
-          const langData = langRes?.data?.data ?? langRes?.data ?? null;
-          const lCount = Array.isArray(langData) ? langData.length : (langData as any)?.totalElements ?? null;
-          setLanguagesCount(typeof lCount === 'number' ? lCount : null);
-        } catch {
-          setLanguagesCount(null);
-        }
+        const data = await adminApi.getDashboardStats();
+        setStats(data);
       } catch (e: any) {
         console.error(e);
-        setError(e?.response?.data?.message || e?.message || 'Lấy thống kê thất bại');
+        setError(e?.response?.data?.message || e?.message || 'Failed to fetch statistics');
       } finally {
         setLoading(false);
       }
     })();
   }, []);
 
-  // animate numbers when counts change
-  useEffect(() => {
-    const animate = (target: number | null, setter: (v: number) => void) => {
-      if (target == null) return setter(NaN);
-      const duration = 600;
-      const steps = 30;
-      const stepTime = duration / steps;
-      let current = 0;
-      const inc = Math.max(1, Math.round(target / steps));
-      const id = setInterval(() => {
-        current += inc;
-        if (current >= target) {
-          setter(target);
-          clearInterval(id);
-        } else {
-          setter(current);
-        }
-      }, stepTime);
-    };
-    animate(problemsCount, setPDisplay);
-    animate(categoriesCount, setCDisplay);
-    animate(languagesCount, setLDisplay);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [problemsCount, categoriesCount, languagesCount]);
-
   if (loading) {
     return (
-      <Container>
-        <div className="py-12"><Loading text="Đang tải thống kê..." /></div>
-      </Container>
+      <div className="py-24 flex justify-center items-center">
+        <Loading text="Loading your dashboard..." />
+      </div>
     );
   }
 
-  const adminProblemsRoute = ROUTES.ADMIN_PROBLEMS ?? '/admin/problems';
-  const adminCategoriesRoute = ROUTES.ADMIN_CATEGORIES ?? '/admin/categories';
-  const adminLanguagesRoute = ROUTES.ADMIN_LANGUAGES ?? '/admin/languages';
-
-  // sample recent items (replace with real API later)
-  const recent = [
-    { text: 'Created problem "Two Sum"', time: '2 hours ago' },
-    { text: 'Updated category "Graph"', time: '1 day ago' },
-    { text: 'Added language "Rust 1.70"', time: '3 days ago' },
+  const recentActivities = [
+    { text: 'New problem "Dynamic Programming Intro" created', time: '2 hours ago', icon: <FiFileText />, color: 'blue' },
+    { text: 'User @john_doe promoted to Administrator', time: '5 hours ago', icon: <FiUsers />, color: 'purple' },
+    { text: 'Weekly Contest #42 started', time: '1 day ago', icon: <FiAward />, color: 'green' },
+    { text: 'System maintenance scheduled for Sunday', time: '2 days ago', icon: <FiActivity />, color: 'orange' },
   ];
 
   return (
-    <Container>
+    <div className="space-y-8 pb-12">
       {error && (
-        <div className="mb-4 p-3 rounded bg-red-50 text-red-700 border border-red-100">
-          {error}
+        <div className="p-4 rounded-xl bg-rose-50 text-rose-700 border border-rose-100 flex items-center gap-3">
+          <FiActivity className="flex-shrink-0" />
+          <p className="text-sm font-medium">{error}</p>
         </div>
       )}
 
-      <div className="flex items-center justify-between mb-6 gap-4">
-        <h1 className="text-2xl font-semibold">Admin dashboard</h1>
-        <div className="flex items-center gap-2">
-          <Link to="/admin/problems/new" className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded">
-            <FiPlus /> New problem
-          </Link>
-          <button onClick={() => window.location.reload()} className="inline-flex items-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded">
-            <FiRefreshCw /> Refresh
-          </button>
-        </div>
+      <AdminPageHeader 
+        title="Dashboard Overview" 
+        subtitle="Welcome back, Admin. Here's what's happening today."
+        actions={
+          <>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 transition-all font-semibold shadow-sm"
+            >
+              <FiRefreshCw size={18} />
+              <span>Refresh</span>
+            </button>
+            <Link 
+              to="/admin/problems/new" 
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all font-semibold shadow-lg shadow-blue-600/20"
+            >
+              <FiPlus size={18} />
+              <span>New Problem</span>
+            </Link>
+          </>
+        }
+      />
+
+      {/* Main Stats */}
+      <div className="grid grid-cols-1 tablet:grid-cols-2 small_desktop:grid-cols-4 desktop:grid-cols-4 gap-6">
+        <AdminStatCard title="Total Users" value={stats?.totalUsers ?? 0} icon={<FiUsers size={20} />} color="blue" trend={{ value: 8, isUp: true }} />
+        <AdminStatCard title="Total Problems" value={stats?.totalProblems ?? 0} icon={<FiFileText size={20} />} color="indigo" trend={{ value: 3, isUp: true }} />
+        <AdminStatCard title="Active Contests" value={stats?.totalContests ?? 0} icon={<FiAward size={20} />} color="purple" />
+        <AdminStatCard title="Total Submissions" value={stats?.totalSubmissions ?? 0} icon={<FiActivity size={20} />} color="green" trend={{ value: 15, isUp: true }} />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <StatCard title="Problems" count={Number.isFinite(pDisplay) ? pDisplay : '-'} to={adminProblemsRoute} icon={<FiFileText />} color="indigo" />
-        <StatCard title="Categories" count={Number.isFinite(cDisplay) ? cDisplay : '-'} to={adminCategoriesRoute} icon={<FiTag />} color="green" />
-        <StatCard title="Languages" count={Number.isFinite(lDisplay) ? lDisplay : '-'} to={adminLanguagesRoute} icon={<FiBox />} color="purple" />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="col-span-2 bg-white rounded-xl p-4 shadow">
-          <h3 className="text-lg font-semibold mb-3">Recent activity</h3>
-          <div className="divide-y">
-            {recent.length === 0 ? (
-              <div className="p-4 text-sm text-gray-500">No recent activity</div>
-            ) : (
-              recent.map((r, i) => <RecentItem key={i} text={r.text} time={r.time} />)
-            )}
+      <div className="grid grid-cols-1 tablet:grid-cols-1 small_desktop:grid-cols-3 desktop:grid-cols-3 gap-8">
+        {/* Recent Activity */}
+        <div className="small_desktop:col-span-2 desktop:col-span-2 space-y-4">
+          <div className="flex items-center justify-between px-2">
+            <h3 className="text-lg font-bold text-slate-900">Recent Activity</h3>
+            <button className="text-sm font-bold text-blue-600 hover:underline">View All</button>
+          </div>
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden divide-y divide-slate-50">
+            {recentActivities.map((activity, index) => (
+              <RecentActivityItem key={index} {...activity} />
+            ))}
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-4 shadow">
-          <h3 className="text-lg font-semibold mb-3">Quick actions</h3>
-          <div className="flex flex-col gap-3">
-            <Link to="/admin/problems/new" className="px-3 py-2 bg-blue-50 text-blue-700 rounded">Create problem</Link>
-            <Link to="/admin/categories" className="px-3 py-2 bg-green-50 text-green-700 rounded">Manage categories</Link>
-            <Link to="/admin/languages" className="px-3 py-2 bg-purple-50 text-purple-700 rounded">Manage languages</Link>
+        {/* Quick Insights & Actions */}
+        <div className="space-y-8">
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold text-slate-900 px-2">Performance</h3>
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 space-y-6">
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs font-bold uppercase tracking-wider">
+                  <span className="text-slate-500">Active Users</span>
+                  <span className="text-blue-600">{stats?.activeUsers ?? 0}</span>
+                </div>
+                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-500 rounded-full" style={{ width: '65%' }} />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs font-bold uppercase tracking-wider">
+                  <span className="text-slate-500">New Users (Month)</span>
+                  <span className="text-indigo-600">{stats?.newUsersThisMonth ?? 0}</span>
+                </div>
+                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-indigo-500 rounded-full" style={{ width: '40%' }} />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs font-bold uppercase tracking-wider">
+                  <span className="text-slate-500">Daily Submissions</span>
+                  <span className="text-emerald-600">{stats?.submissionsToday ?? 0}</span>
+                </div>
+                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-emerald-500 rounded-full" style={{ width: '80%' }} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold text-slate-900 px-2">Quick Actions</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <Link to="/admin/categories" className="flex flex-col items-center gap-2 p-4 bg-white rounded-2xl border border-slate-100 hover:border-blue-200 hover:bg-blue-50 transition-all group">
+                <div className="p-2 rounded-lg bg-slate-50 text-slate-500 group-hover:bg-white group-hover:text-blue-600 transition-colors">
+                  <FiTag size={20} />
+                </div>
+                <span className="text-xs font-bold text-slate-600 group-hover:text-blue-700 uppercase tracking-wider">Tags</span>
+              </Link>
+              <Link to="/admin/languages" className="flex flex-col items-center gap-2 p-4 bg-white rounded-2xl border border-slate-100 hover:border-indigo-200 hover:bg-indigo-50 transition-all group">
+                <div className="p-2 rounded-lg bg-slate-50 text-slate-500 group-hover:bg-white group-hover:text-indigo-600 transition-colors">
+                  <FiGlobe size={20} />
+                </div>
+                <span className="text-xs font-bold text-slate-600 group-hover:text-indigo-700 uppercase tracking-wider">Languages</span>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
-    </Container>
+    </div>
   );
 };
 
 export default AdminDashboard;
-// ...existing code...

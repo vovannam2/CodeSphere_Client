@@ -39,7 +39,7 @@ const LeaderboardPage = () => {
         setProblems(response.content);
       } catch (error) {
         console.error('Error fetching problems:', error);
-        toast.error('Không thể tải danh sách bài tập');
+        toast.error('Failed to load problems');
       } finally {
         setIsLoadingProblems(false);
       }
@@ -84,9 +84,9 @@ const LeaderboardPage = () => {
       HARD: 'text-red-600 bg-red-50',
     };
     const labels = {
-      EASY: 'Dễ',
-      MEDIUM: 'Trung bình',
-      HARD: 'Khó',
+      EASY: 'Easy',
+      MEDIUM: 'Medium',
+      HARD: 'Hard',
     };
     return (
       <span className={`px-2.5 py-1 rounded text-xs font-medium ${colors[level as keyof typeof colors] || 'text-gray-600 bg-gray-50'}`}>
@@ -104,7 +104,7 @@ const LeaderboardPage = () => {
             <FiAward className="w-8 h-8 text-yellow-500" />
             <h1 className="text-3xl font-bold text-gray-900">Leaderboard</h1>
           </div>
-          <p className="text-gray-600">Xem bảng xếp hạng của các bài tập lập trình</p>
+          <p className="text-gray-600">View leaderboards for programming problems</p>
         </div>
 
         {/* Tabs */}
@@ -120,7 +120,7 @@ const LeaderboardPage = () => {
             >
               <div className="flex items-center gap-2">
                 <FiAward className="w-4 h-4" />
-                <span>Xếp hạng theo bài tập</span>
+                <span>Problem Leaderboard</span>
               </div>
             </button>
             <button
@@ -133,7 +133,7 @@ const LeaderboardPage = () => {
             >
               <div className="flex items-center gap-2">
                 <FiGlobe className="w-4 h-4" />
-                <span>Xếp hạng toàn cục</span>
+                <span>Global Leaderboard</span>
               </div>
             </button>
           </nav>
@@ -143,7 +143,7 @@ const LeaderboardPage = () => {
         {activeTab === 'problem' && (
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Chọn bài tập
+              Select Problem
             </label>
             <div className="relative max-w-2xl" ref={dropdownRef}>
               <button
@@ -163,7 +163,7 @@ const LeaderboardPage = () => {
                       </span>
                     </>
                   ) : (
-                    <span className="text-gray-400 text-sm">Chọn bài tập...</span>
+                    <span className="text-gray-400 text-sm">Select a problem...</span>
                   )}
                 </div>
                 <FiChevronDown
@@ -181,7 +181,7 @@ const LeaderboardPage = () => {
                       <FiSearch className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <input
                         type="text"
-                        placeholder="Tìm kiếm bài tập..."
+                        placeholder="Search problems..."
                         value={searchQuery}
                         onChange={(e) => {
                           e.stopPropagation();
@@ -220,7 +220,7 @@ const LeaderboardPage = () => {
                       </div>
                     ) : filteredProblems.length === 0 ? (
                       <div className="text-center py-8 text-gray-500 text-sm">
-                        {searchQuery ? 'Không tìm thấy bài tập nào' : 'Chưa có bài tập nào'}
+                        {searchQuery ? 'No problems found' : 'No problems available'}
                       </div>
                     ) : (
                       <div className="divide-y divide-gray-100">
@@ -257,7 +257,7 @@ const LeaderboardPage = () => {
                   to={`${ROUTES.PROBLEMS}/${selectedProblem.id}`}
                   className="text-sm text-blue-600 hover:text-blue-700 font-medium"
                 >
-                  Xem chi tiết bài tập →
+                  View problem details →
                 </Link>
               </div>
             )}
@@ -270,7 +270,7 @@ const LeaderboardPage = () => {
             <div className="space-y-6">
               {/* Statistics */}
               <div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Thống kê</h2>
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">Statistics</h2>
                 <ProblemStatistics problemId={selectedProblem.id} />
               </div>
 
@@ -281,7 +281,7 @@ const LeaderboardPage = () => {
 
               {/* Leaderboard Table */}
               <div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-3">Bảng xếp hạng</h2>
+                <h2 className="text-xl font-semibold text-gray-900 mb-3">Leaderboard</h2>
                 <LeaderboardTable
                   problemId={selectedProblem.id}
                   highlightUserId={user?.id}
@@ -292,8 +292,8 @@ const LeaderboardPage = () => {
           ) : (
             <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
               <FiAward className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">Chưa chọn bài tập</h3>
-              <p className="text-gray-500">Vui lòng chọn một bài tập ở trên để xem bảng xếp hạng</p>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">No problem selected</h3>
+              <p className="text-gray-500">Please select a problem above to view the leaderboard</p>
             </div>
           )
         ) : (
@@ -301,10 +301,10 @@ const LeaderboardPage = () => {
             <div>
               <h2 className="text-xl font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <FiGlobe className="w-6 h-6" />
-                Bảng xếp hạng toàn cục
+                Global Leaderboard
               </h2>
               <p className="text-gray-600 mb-4">
-                Xếp hạng tất cả người dùng theo tổng số bài tập đã giải đúng
+                Ranking all users by total number of solved problems
               </p>
               <GlobalLeaderboardTable highlightUserId={user?.id} />
             </div>

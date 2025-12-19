@@ -29,10 +29,10 @@ const Tooltip = ({ children, text, position = 'bottom' }: TooltipProps) => {
   };
 
   return (
-    <div className="relative group">
+    <div className="relative group/tooltip">
       {children}
       <div
-        className={`absolute ${positionClasses[position]} z-50 px-2.5 py-1.5 bg-gray-900 text-white text-xs font-medium rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none shadow-lg`}
+        className={`absolute ${positionClasses[position]} z-50 px-2.5 py-1.5 bg-gray-900 text-white text-xs font-medium rounded-md whitespace-nowrap opacity-0 group-hover/tooltip:opacity-100 transition-opacity duration-200 pointer-events-none shadow-lg`}
       >
         {text}
         <div

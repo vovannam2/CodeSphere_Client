@@ -42,6 +42,8 @@ interface CodeEditorPanelProps {
   onAddCustomTestCase: () => void;
   onDeleteCustomTestCase: (index: number) => void;
   onUpdateCustomTestCase: (index: number, testCase: CustomTestCase) => void;
+  // Contest mode
+  contestId?: string | null;
 }
 
 const CodeEditorPanel = ({
@@ -73,6 +75,7 @@ const CodeEditorPanel = ({
   onAddCustomTestCase,
   onDeleteCustomTestCase,
   onUpdateCustomTestCase,
+  contestId,
 }: CodeEditorPanelProps) => {
   const editorRef = useRef<any>(null);
   const editorContainerRef = useRef<HTMLDivElement>(null);
@@ -242,31 +245,35 @@ const CodeEditorPanel = ({
               }`} />
             )}
           </button>
+          {!contestId && (
+            <button
+              onClick={() => onEditorTabChange('review')}
+              className={`px-3 py-1.5 text-sm font-medium transition-colors relative ${
+                activeEditorTab === 'review'
+                  ? 'text-gray-900 border-b-2 border-gray-900'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Review
+              {reviewResult && (
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-blue-500" />
+              )}
+            </button>
+          )}
+        </div>
+        {/* AI Chat Button - Ẩn khi đang trong contest */}
+        {!contestId && (
           <button
-            onClick={() => onEditorTabChange('review')}
-            className={`px-3 py-1.5 text-sm font-medium transition-colors relative ${
-              activeEditorTab === 'review'
-                ? 'text-gray-900 border-b-2 border-gray-900'
+            onClick={onToggleChat}
+            className={`px-3 py-1.5 text-sm font-medium transition-colors mr-2 ${
+              isChatOpen
+                ? 'text-blue-600 bg-blue-50 border-b-2 border-blue-600'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            Review
-            {reviewResult && (
-              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-blue-500" />
-            )}
+            AI Chat
           </button>
-        </div>
-        {/* AI Chat Button */}
-        <button
-          onClick={onToggleChat}
-          className={`px-3 py-1.5 text-sm font-medium transition-colors mr-2 ${
-            isChatOpen
-              ? 'text-blue-600 bg-blue-50 border-b-2 border-blue-600'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          AI Chat
-        </button>
+        )}
       </div>
 
       {/* Editor Content */}
@@ -291,41 +298,44 @@ const CodeEditorPanel = ({
                   Auto
                 </button>
               </div>
-              <div className="flex items-center gap-2">
-                {showDiff ? (
-                  <>
-                    <button
-                      onClick={onAcceptRefactor}
-                      className="px-3 py-1.5 text-xs bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                    >
-                      Accept Changes
-                    </button>
-                    <button
-                      onClick={onCancelRefactor}
-                      className="px-3 py-1.5 text-xs bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      onClick={onReview}
-                      disabled={isReviewing || isRefactoring}
-                      className="px-3 py-1.5 text-xs bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isReviewing ? 'Đang đánh giá...' : 'Review Code'}
-                    </button>
-                    <button
-                      onClick={onRefactor}
-                      disabled={isRefactoring || isReviewing}
-                      className="px-3 py-1.5 text-xs bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isRefactoring ? 'Đang refactor...' : 'Refactor'}
-                    </button>
-                  </>
-                )}
-              </div>
+              {/* Ẩn các nút AI khi đang trong contest */}
+              {!contestId && (
+                <div className="flex items-center gap-2">
+                  {showDiff ? (
+                    <>
+                      <button
+                        onClick={onAcceptRefactor}
+                        className="px-3 py-1.5 text-xs bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                      >
+                        Accept Changes
+                      </button>
+                      <button
+                        onClick={onCancelRefactor}
+                        className="px-3 py-1.5 text-xs bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={onReview}
+                        disabled={isReviewing || isRefactoring}
+                        className="px-3 py-1.5 text-xs bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isReviewing ? 'Đang đánh giá...' : 'Review Code'}
+                      </button>
+                      <button
+                        onClick={onRefactor}
+                        disabled={isRefactoring || isReviewing}
+                        className="px-3 py-1.5 text-xs bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isRefactoring ? 'Đang refactor...' : 'Refactor'}
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Code Editor */}

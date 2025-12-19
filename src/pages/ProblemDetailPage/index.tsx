@@ -1,9 +1,10 @@
 import { useEffect, useState, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import Loading from '@/components/Loading';
 import { problemApi, type TestCaseResponse } from '@/apis/problem.api';
 import type { ProblemResponse } from '@/types/problem.types';
 import { submissionApi, type RunCodeResponse, type CustomTestCase, type SubmissionResponse, type SubmissionDetailResponse } from '@/apis/submission.api';
+import { contestApi } from '@/apis/contest.api';
 import { ROUTES } from '@/utils/constants';
 import type { ProblemDetailResponse } from '@/types/problem.types';
 import toast from 'react-hot-toast';
@@ -16,13 +17,18 @@ import CodeEditorPanel from './components/CodeEditorPanel';
 import ResizeHandle from './components/ResizeHandle';
 import { useAuth } from '@/hooks/useAuth';
 import type { TabType, EditorTabType, ResizeSide } from './types';
+import ContestHeader from '@/components/Contest/ContestHeader';
+import type { ContestDetailResponse } from '@/types/contest.types';
 
 const ProblemDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
+  const contestId = searchParams.get('contestId');
   const [problem, setProblem] = useState<ProblemDetailResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [contest, setContest] = useState<ContestDetailResponse | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('description');
   const [selectedLanguage, setSelectedLanguage] = useState<string>('cpp');
   const [code, setCode] = useState<string>('');
@@ -37,6 +43,7 @@ const ProblemDetailPage = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissions, setSubmissions] = useState<SubmissionResponse[]>([]);
+  const [contestSubmissions, setContestSubmissions] = useState<ContestSubmissionResponse[]>([]);
   const [selectedSubmission, setSelectedSubmission] = useState<SubmissionDetailResponse | null>(null);
   const [isLoadingSubmissions, setIsLoadingSubmissions] = useState(false);
   const [isProblemListOpen, setIsProblemListOpen] = useState(false);
@@ -58,6 +65,34 @@ const ProblemDetailPage = () => {
   const resizeStartX = useRef<number>(0);
   const resizeStartLeftWidth = useRef<number>(33.33);
   const resizeStartMiddleWidth = useRef<number>(33.33);
+
+  // Nếu đang trong contest và ở tab Review, chuyển về tab Code
+  useEffect(() => {
+    if (contestId && activeEditorTab === 'review') {
+      setActiveEditorTab('code');
+    }
+  }, [contestId, activeEditorTab]);
+
+  // Nếu đang trong contest và ở các tab bị ẩn, chuyển về tab Description
+  useEffect(() => {
+    if (contestId && (activeTab === 'editorial' || activeTab === 'solutions' || activeTab === 'comments' || activeTab === 'leaderboard')) {
+      setActiveTab('description');
+    }
+  }, [contestId, activeTab]);
+
+  // Fetch contest data if in contest mode
+  useEffect(() => {
+    const fetchContest = async () => {
+      if (!contestId) return;
+      try {
+        const contestData = await contestApi.getContestById(Number(contestId));
+        setContest(contestData);
+      } catch (error) {
+        console.error('Error fetching contest:', error);
+      }
+    };
+    fetchContest();
+  }, [contestId]);
 
   // Fetch problem
   useEffect(() => {
@@ -113,12 +148,34 @@ const ProblemDetailPage = () => {
       
       try {
         setIsLoadingSubmissions(true);
-        const response = await submissionApi.getMySubmissions({
-          problemId: Number(id),
-          page: 0,
-          size: 50,
-        });
-        setSubmissions(response.content || []);
+        
+        // Nếu đang trong contest context, fetch contest submissions
+        if (contestId) {
+          try {
+            const contestSubs = await contestApi.getContestSubmissions(Number(contestId), Number(id));
+            setContestSubmissions(contestSubs);
+            // Map contest submissions to regular submissions format for display
+            setSubmissions([]); // Clear regular submissions when in contest mode
+          } catch (error: any) {
+            console.error('Error fetching contest submissions:', error);
+            // Fallback to regular submissions if contest submissions fail
+            const response = await submissionApi.getMySubmissions({
+              problemId: Number(id),
+              page: 0,
+              size: 50,
+            });
+            setSubmissions(response.content || []);
+          }
+        } else {
+          // Regular problem submissions
+          const response = await submissionApi.getMySubmissions({
+            problemId: Number(id),
+            page: 0,
+            size: 50,
+          });
+          setSubmissions(response.content || []);
+          setContestSubmissions([]);
+        }
       } catch (error: any) {
         console.error('Error fetching submissions:', error);
         if (error.response?.status !== 401) {
@@ -130,7 +187,7 @@ const ProblemDetailPage = () => {
     };
 
     fetchSubmissions();
-  }, [id, activeTab]);
+  }, [id, activeTab, contestId]);
 
   // Fetch problem list
   useEffect(() => {
@@ -181,6 +238,14 @@ const ProblemDetailPage = () => {
 
   // Panel resize effects
   useEffect(() => {
+    // Nếu đang trong contest, không cho phép mở AI chat
+    if (contestId) {
+      setIsChatOpen(false);
+      setLeftPanelWidth(50);
+      setMiddlePanelWidth(50);
+      return;
+    }
+    
     if (isChatOpen) {
       setLeftPanelWidth(33.33);
       setMiddlePanelWidth(33.33);
@@ -188,7 +253,7 @@ const ProblemDetailPage = () => {
       setLeftPanelWidth(50);
       setMiddlePanelWidth(50);
     }
-  }, [isChatOpen]);
+  }, [isChatOpen, contestId]);
 
   useEffect(() => {
     if (!isResizing) return;
@@ -199,6 +264,17 @@ const ProblemDetailPage = () => {
       if (!container) return;
       const containerWidth = container.offsetWidth;
       const deltaX = ((e.clientX - resizeStartX.current) / containerWidth) * 100;
+
+      // Nếu đang trong contest, không cho phép resize để mở AI chat
+      if (contestId) {
+        const newLeftWidth = Math.max(25, Math.min(75, resizeStartLeftWidth.current + deltaX));
+        const newRightWidth = 100 - newLeftWidth;
+        if (newRightWidth >= 25 && newLeftWidth >= 25) {
+          setLeftPanelWidth(newLeftWidth);
+          setMiddlePanelWidth(newRightWidth);
+        }
+        return;
+      }
 
       if (isChatOpen) {
         // 3 panels mode: left, middle, right (AI chat)
@@ -239,7 +315,7 @@ const ProblemDetailPage = () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isResizing, isChatOpen]);
+  }, [isResizing, isChatOpen, contestId]);
 
   // Handlers
   const handleToggleBookmark = async () => {
@@ -291,6 +367,27 @@ const ProblemDetailPage = () => {
             
             if (!isPending) {
               setIsSubmitting(false);
+              
+              // Nếu đang trong contest context, tự động submit vào contest
+              if (contestId && submission.id) {
+                try {
+                  await contestApi.submitToContest(Number(contestId), submission.id);
+                  toast.success('Đã submit vào contest!');
+                  // Refresh contest data để cập nhật điểm
+                  try {
+                    const contestData = await contestApi.getContestById(Number(contestId));
+                    setContest(contestData);
+                  } catch (e) {
+                    console.error('Error refreshing contest:', e);
+                  }
+                } catch (e: any) {
+                  // Không hiển thị lỗi nếu đã submit rồi hoặc contest đã kết thúc
+                  if (!e?.response?.data?.message?.includes('đã được gửi')) {
+                    console.error('Error submitting to contest:', e);
+                  }
+                }
+              }
+              
               const runResult: RunCodeResponse = {
                 success: submission.isAccepted || false,
                 message: submission.statusMsg || '',
@@ -507,30 +604,57 @@ const ProblemDetailPage = () => {
     toast.success('Đã hủy refactor');
   };
 
-  const handleSelectSubmission = async (submission: SubmissionDetailResponse) => {
+  const handleSelectSubmission = async (submission: SubmissionDetailResponse | any) => {
     try {
-      const detail = await submissionApi.getSubmissionById(submission.id);
-      setSelectedSubmission(detail);
-      setCode(detail.codeContent || '');
-      if (detail.languageName && problem?.languages) {
-        const lang = problem.languages.find(l => 
-          l.name === detail.languageName || l.code === detail.languageName?.toLowerCase()
-        );
-        if (lang && lang.code) {
-          setSelectedLanguage(lang.code);
+      // Check if this is a contest submission (has codeContent directly)
+      if (submission.codeContent && contestId) {
+        // Contest submission: use codeContent directly
+        setSelectedSubmission(submission as SubmissionDetailResponse);
+        setCode(submission.codeContent || '');
+        if (submission.language && problem?.languages) {
+          const lang = problem.languages.find(l => 
+            l.name === submission.language || l.code === submission.language?.toLowerCase()
+          );
+          if (lang && lang.code) {
+            setSelectedLanguage(lang.code);
+          }
         }
+        const runResult: RunCodeResponse = {
+          success: submission.isAccepted || false,
+          message: submission.statusMsg || '',
+          testResults: [],
+          totalPassed: 0,
+          totalTests: 0,
+          compileError: null,
+          fullCompileError: null,
+        };
+        setRunResults(runResult);
+        setActiveEditorTab('result');
+      } else {
+        // Regular submission: fetch detail from API
+        const detail = await submissionApi.getSubmissionById(submission.id);
+        setSelectedSubmission(detail);
+        setCode(detail.codeContent || '');
+        if (detail.languageName && problem?.languages) {
+          const lang = problem.languages.find(l => 
+            l.name === detail.languageName || l.code === detail.languageName?.toLowerCase()
+          );
+          if (lang && lang.code) {
+            setSelectedLanguage(lang.code);
+          }
+        }
+        const runResult: RunCodeResponse = {
+          success: detail.isAccepted || false,
+          message: detail.statusMsg || '',
+          testResults: detail.testResults || [],
+          totalPassed: detail.totalCorrect || 0,
+          totalTests: detail.totalTestcases || 0,
+          compileError: detail.compileError,
+          fullCompileError: detail.fullCompileError,
+        };
+        setRunResults(runResult);
+        setActiveEditorTab('result');
       }
-      const runResult: RunCodeResponse = {
-        success: detail.isAccepted || false,
-        message: detail.statusMsg || '',
-        testResults: detail.testResults || [],
-        totalPassed: detail.totalCorrect || 0,
-        totalTests: detail.totalTestcases || 0,
-        compileError: detail.compileError,
-        fullCompileError: detail.fullCompileError,
-      };
-      setRunResults(runResult);
-      setActiveEditorTab('result');
     } catch (error: any) {
       toast.error('Không thể tải chi tiết submission');
     }
@@ -570,6 +694,31 @@ const ProblemDetailPage = () => {
     return null;
   }
 
+  // Kiểm tra nếu contest đã kết thúc thì không cho xem bài
+  const isContestEnded = () => {
+    if (!contestId || !contest) return false;
+    const now = new Date();
+    const end = new Date(contest.endTime);
+    return now >= end;
+  };
+
+  if (isContestEnded()) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="text-2xl font-bold text-red-600 mb-2">Contest đã kết thúc</div>
+          <div className="text-gray-600 mb-4">Bạn không thể xem hoặc làm bài nữa</div>
+          <button
+            onClick={() => navigate(`/contest/${contestId}`)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Quay lại Contest
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
       <TopBar
@@ -585,6 +734,8 @@ const ProblemDetailPage = () => {
         onResetTimer={handleResetTimer}
         isBookmarked={isBookmarked}
         onToggleBookmark={handleToggleBookmark}
+        contest={contestId && contest ? contest : null}
+        currentProblemId={Number(id)}
       />
 
       <ProblemListSidebar
@@ -608,11 +759,13 @@ const ProblemDetailPage = () => {
             activeTab={activeTab}
             onTabChange={setActiveTab}
             submissions={submissions}
+            contestSubmissions={contestSubmissions}
             isLoadingSubmissions={isLoadingSubmissions}
             selectedSubmission={selectedSubmission}
             onSelectSubmission={handleSelectSubmission}
             runResults={runResults}
             currentUserId={user?.id}
+            contestId={contestId}
           />
         </div>
 
@@ -665,10 +818,11 @@ const ProblemDetailPage = () => {
             onAddCustomTestCase={handleAddCustomTestCase}
             onDeleteCustomTestCase={handleDeleteCustomTestCase}
             onUpdateCustomTestCase={handleUpdateCustomTestCase}
+            contestId={contestId}
           />
         </div>
 
-        {isChatOpen && (
+        {isChatOpen && !contestId && (
           <ResizeHandle
             side="right"
             isResizing={isResizing}
@@ -676,7 +830,7 @@ const ProblemDetailPage = () => {
           />
         )}
 
-        {isChatOpen && problem && (
+        {isChatOpen && problem && !contestId && (
           <div 
             className="flex flex-col bg-white border-l border-gray-200 overflow-hidden"
             style={{ width: `${100 - leftPanelWidth - middlePanelWidth}%` }}

@@ -7,7 +7,7 @@ import { conversationApi } from '@/apis/conversation.api';
 import type { ConversationResponse } from '@/types/conversation.types';
 import { useAuth } from '@/hooks/useAuth';
 import { formatDistanceToNow } from 'date-fns';
-import { vi } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
 import toast from 'react-hot-toast';
 import Tooltip from './Tooltip';
 
@@ -49,7 +49,7 @@ const MessengerDropdown = () => {
       setUnreadCount(totalUnread);
     } catch (error: any) {
       console.error('Error fetching conversations:', error);
-      toast.error('Có lỗi xảy ra khi tải tin nhắn');
+      toast.error('Error loading messages');
     } finally {
       setLoading(false);
     }
@@ -64,7 +64,7 @@ const MessengerDropdown = () => {
 
   const formatTime = (dateString: string) => {
     try {
-      return formatDistanceToNow(new Date(dateString), { addSuffix: true, locale: vi });
+      return formatDistanceToNow(new Date(dateString), { addSuffix: true, locale: enUS });
     } catch {
       return dateString;
     }
@@ -72,43 +72,48 @@ const MessengerDropdown = () => {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <Tooltip text="Tin nhắn">
+      <Tooltip text="Messages">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`relative p-2 rounded-full transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-gray-100 ${
+          className={`relative p-2 rounded-xl transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-slate-50 border border-transparent ${
             isActive
-              ? 'text-blue-600 bg-blue-100'
-              : 'text-gray-600'
+              ? 'text-blue-600 bg-blue-50 border-blue-100'
+              : 'text-slate-500 hover:text-slate-900 hover:border-slate-200'
           }`}
         >
-          <FiMessageSquare className="w-6 h-6 transition-transform duration-200 group-hover:scale-110" />
-          {/* Unread badge */}
+          <FiMessageSquare className={`w-6 h-6 transition-transform duration-200 group-hover:scale-110 ${isActive ? 'fill-blue-600/10' : ''}`} />
           {unreadCount > 0 && (
-            <span className="absolute top-0 right-0 block h-4 w-4 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center border-2 border-white">
-              {unreadCount > 9 ? '9+' : unreadCount}
+            <span className="absolute -top-1 -right-1 block h-5 w-5 rounded-full bg-blue-600 text-white text-[10px] font-black flex items-center justify-center border-2 border-white shadow-sm shadow-blue-600/30">
+              {unreadCount}
             </span>
           )}
         </button>
       </Tooltip>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg z-50 border border-gray-200 max-h-96 overflow-y-auto">
-          <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-            <h3 className="font-semibold text-gray-900">Tin nhắn</h3>
+        <div className="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-xl z-50 border border-slate-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="p-4 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+            <h3 className="font-bold text-slate-900">Messages</h3>
             <Link
               to={ROUTES.MESSAGES}
-              className="text-sm text-blue-600 hover:text-blue-700"
+              className="text-xs font-bold text-blue-600 hover:text-blue-700 uppercase tracking-wider"
               onClick={() => setIsOpen(false)}
             >
-              Xem tất cả
+              View all
             </Link>
           </div>
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-slate-50 max-h-[400px] overflow-y-auto custom-scrollbar">
             {loading ? (
-              <div className="p-4 text-center text-gray-500 text-sm">Đang tải...</div>
+              <div className="p-8 text-center text-slate-400">
+                <div className="animate-spin w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full mx-auto mb-2"></div>
+                <p className="text-sm">Loading...</p>
+              </div>
             ) : conversations.length === 0 ? (
-              <div className="p-4 text-center text-gray-500 text-sm">
-                Chưa có tin nhắn nào
+              <div className="p-8 text-center text-slate-400">
+                <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <FiMessageSquare size={24} className="opacity-20" />
+                </div>
+                <p className="text-sm">No messages yet</p>
               </div>
             ) : (
               conversations.slice(0, 5).map((conversation) => {
@@ -120,41 +125,42 @@ const MessengerDropdown = () => {
                       navigate(`${ROUTES.MESSAGES}/${conversation.id}`);
                       setIsOpen(false);
                     }}
-                    className="p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                    className="p-4 hover:bg-slate-50 cursor-pointer transition-colors"
                   >
                     <div className="flex items-start gap-3">
                       {conversation.type === 'DIRECT' && otherUser ? (
                         <Avatar
-                          src={otherUser.avatar}
-                          username={otherUser.username}
+                          user={otherUser}
                           size="sm"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold text-sm">
+                        <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 font-bold text-sm shadow-sm">
                           {conversation.type === 'GROUP' ? 'G' : '?'}
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <p className="text-sm font-medium text-gray-900 truncate">
+                        <div className="flex items-center justify-between mb-0.5">
+                          <p className="text-[13px] font-bold text-slate-900 truncate">
                             {conversation.type === 'DIRECT' && otherUser
                               ? otherUser.username
-                              : conversation.name || 'Nhóm'}
+                              : conversation.name || 'Group Chat'}
                           </p>
                           {conversation.lastMessage && (
-                            <span className="text-xs text-gray-500 ml-2">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-2">
                               {formatTime(conversation.lastMessage.createdAt)}
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-gray-600 truncate">
-                          {conversation.lastMessage?.content || 'Chưa có tin nhắn'}
-                        </p>
-                        {conversation.unreadCount && conversation.unreadCount > 0 && (
-                          <span className="inline-block mt-1 px-2 py-0.5 bg-blue-600 text-white text-xs font-bold rounded-full">
-                            {conversation.unreadCount}
-                          </span>
-                        )}
+                        <div className="flex items-center justify-between gap-2">
+                          <p className={`text-xs truncate ${conversation.unreadCount && conversation.unreadCount > 0 ? 'text-slate-900 font-semibold' : 'text-slate-500'}`}>
+                            {conversation.lastMessage?.content || 'No messages yet'}
+                          </p>
+                          {conversation.unreadCount && conversation.unreadCount > 0 && (
+                            <span className="flex-shrink-0 w-5 h-5 bg-blue-600 text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-sm">
+                              {conversation.unreadCount}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>

@@ -130,7 +130,7 @@ const MessagesPage = () => {
           setFollowingUsers(data);
         } catch (error) {
           console.error('Error loading following users:', error);
-          toast.error('Có lỗi xảy ra khi tải danh sách người dùng');
+          toast.error('Error loading user list');
         } finally {
           setLoadingFollowing(false);
         }
@@ -150,7 +150,7 @@ const MessagesPage = () => {
           setFollowingUsers(data);
         } catch (error) {
           console.error('Error loading following users:', error);
-          toast.error('Có lỗi xảy ra khi tải danh sách người dùng');
+          toast.error('Error loading user list');
         } finally {
           setLoadingFollowing(false);
         }
@@ -339,7 +339,7 @@ const MessagesPage = () => {
         }
       }
     } catch (error: any) {
-      toast.error('Có lỗi xảy ra khi tải danh sách tin nhắn');
+      toast.error('Error loading messages');
     } finally {
       setLoading(false);
     }
@@ -360,7 +360,7 @@ const MessagesPage = () => {
         return [conv, ...prev];
       });
     } catch (error: any) {
-      toast.error('Có lỗi xảy ra khi tải cuộc trò chuyện');
+      toast.error('Error loading conversation');
     }
   };
 
@@ -400,7 +400,7 @@ const MessagesPage = () => {
         setCurrentPage(page);
       }
     } catch (error: any) {
-      toast.error('Có lỗi xảy ra khi tải tin nhắn');
+      toast.error('Error loading messages');
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -462,7 +462,7 @@ const MessagesPage = () => {
       
       setMessageContent('');
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Có lỗi xảy ra khi gửi tin nhắn');
+      toast.error(error?.response?.data?.message || 'Error sending message');
     } finally {
       setSending(false);
     }
@@ -503,7 +503,7 @@ const MessagesPage = () => {
         toast.error('Không thể upload file');
       }
     } catch (error: any) {
-      toast.error('Có lỗi xảy ra khi upload file');
+      toast.error('Error uploading file');
       console.error(error);
     } finally {
       setUploading(false);
@@ -516,7 +516,7 @@ const MessagesPage = () => {
   const handleDeleteMessage = async (messageId: number) => {
     if (!selectedConversation || deletingMessageId === messageId) return;
     
-    if (!window.confirm('Bạn có chắc muốn thu hồi tin nhắn này?')) {
+    if (!window.confirm('Are you sure you want to recall this message?')) {
       return;
     }
 
@@ -526,13 +526,13 @@ const MessagesPage = () => {
       
       setMessages((prev) =>
         prev.map((m) =>
-          m.id === messageId ? { ...m, isDeleted: true, content: 'Tin nhắn đã bị thu hồi' } : m
+          m.id === messageId ? { ...m, isDeleted: true, content: 'Message recalled' } : m
         )
       );
       
-      toast.success('Đã thu hồi tin nhắn');
+      toast.success('Message recalled');
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Có lỗi xảy ra khi thu hồi tin nhắn');
+      toast.error(error?.response?.data?.message || 'Error recalling message');
     } finally {
       setDeletingMessageId(null);
     }
@@ -540,7 +540,7 @@ const MessagesPage = () => {
 
   const handleCreateGroup = async () => {
     if (!groupName.trim() || selectedUsers.length === 0) {
-      toast.error('Vui lòng nhập tên nhóm và chọn ít nhất 1 thành viên');
+      toast.error('Please enter group name and select at least 1 member');
       return;
     }
 
@@ -561,15 +561,15 @@ const MessagesPage = () => {
       setSearchFollowingQuery('');
       setSearchedUsers([]);
       navigate(`/messages/${newConversation.id}`);
-      toast.success('Đã tạo nhóm chat');
+      toast.success('Group chat created');
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Có lỗi xảy ra khi tạo nhóm');
+      toast.error(error?.response?.data?.message || 'Error creating group');
     }
   };
 
   const handleAddMembers = async () => {
     if (!selectedConversation || selectedUsersToAdd.length === 0) {
-      toast.error('Vui lòng chọn ít nhất 1 thành viên');
+      toast.error('Please select at least 1 member');
       return;
     }
 
@@ -596,9 +596,9 @@ const MessagesPage = () => {
         fetchMessages(selectedConversation.id, 0, true);
       }, 500);
       
-      toast.success(`Đã thêm ${selectedUsersToAdd.length} thành viên vào nhóm`);
+      toast.success(`Added ${selectedUsersToAdd.length} members to group`);
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Có lỗi xảy ra khi thêm thành viên');
+      toast.error(error?.response?.data?.message || 'Error adding members');
     } finally {
       setAddingMembers(false);
     }
@@ -613,7 +613,7 @@ const MessagesPage = () => {
   const handleRemoveMember = async (memberId: number) => {
     if (!selectedConversation || removingMemberId === memberId) return;
     
-    if (!window.confirm('Bạn có chắc muốn xóa thành viên này khỏi nhóm?')) {
+    if (!window.confirm('Are you sure you want to remove this member from the group?')) {
       return;
     }
 
@@ -631,9 +631,9 @@ const MessagesPage = () => {
       // Reload messages to show system message
       fetchMessages(selectedConversation.id, 0, true);
       
-      toast.success('Đã xóa thành viên khỏi nhóm');
+      toast.success('Member removed from group');
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Có lỗi xảy ra khi xóa thành viên');
+      toast.error(error?.response?.data?.message || 'Error removing member');
     } finally {
       setRemovingMemberId(null);
     }
@@ -654,7 +654,7 @@ const MessagesPage = () => {
     }
     
     // Nếu không phải ADMIN, rời nhóm bình thường
-    if (!window.confirm('Bạn có chắc muốn rời nhóm này?')) {
+    if (!window.confirm('Are you sure you want to leave this group?')) {
       return;
     }
 
@@ -669,9 +669,9 @@ const MessagesPage = () => {
       // Refresh conversations list
       fetchConversations();
       
-      toast.success('Đã rời nhóm');
+      toast.success('Left group');
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Có lỗi xảy ra khi rời nhóm');
+      toast.error(error?.response?.data?.message || 'Error leaving group');
     } finally {
       setLeavingGroup(false);
     }
@@ -686,7 +686,7 @@ const MessagesPage = () => {
     );
     
     if (currentParticipant?.role === 'ADMIN' && !selectedNewAdminId) {
-      toast.error('Vui lòng chọn thành viên làm trưởng nhóm mới');
+      toast.error('Please select a member as the new group admin');
       return;
     }
 
@@ -714,7 +714,7 @@ const MessagesPage = () => {
   const handleTransferAdmin = async (newAdminId: number) => {
     if (!selectedConversation || transferringAdminId === newAdminId) return;
     
-    if (!window.confirm('Bạn có chắc muốn bổ nhiệm người này làm trưởng nhóm? Bạn sẽ trở thành thành viên thường.')) {
+    if (!window.confirm('Are you sure you want to appoint this person as group admin? You will become a regular member.')) {
       return;
     }
 
@@ -761,9 +761,9 @@ const MessagesPage = () => {
       const now = new Date();
       const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
       
-      if (diffInMinutes < 1) return 'Vừa xong';
-      if (diffInMinutes < 60) return `${diffInMinutes} phút trước`;
-      if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} giờ trước`;
+      if (diffInMinutes < 1) return 'Just now';
+      if (diffInMinutes < 60) return `${diffInMinutes} min ago`;
+      if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} hours ago`;
       
       return formatDistanceToNow(date, { addSuffix: true, locale: vi });
     } catch {
@@ -788,7 +788,7 @@ const MessagesPage = () => {
         const otherUser = getOtherUser(conversation);
         const displayName = conversation.type === 'DIRECT' && otherUser
           ? otherUser.username
-          : conversation.name || 'Nhóm chat';
+          : conversation.name || 'Group chat';
         return displayName.toLowerCase().includes(query);
       });
     }
@@ -846,11 +846,11 @@ const MessagesPage = () => {
       <div className="w-80 border-r border-gray-200 bg-white flex flex-col">
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900">Đoạn chat</h2>
+            <h2 className="text-xl font-bold text-gray-900">Chats</h2>
             <button
               onClick={() => setShowCreateGroup(true)}
               className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              title="Tạo nhóm chat"
+              title="Create group chat"
             >
               <FiPlus className="w-5 h-5 text-gray-600" />
             </button>
@@ -861,7 +861,7 @@ const MessagesPage = () => {
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Tìm kiếm trên Messenger"
+              placeholder="Search on Messenger"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-gray-100 rounded-lg border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
@@ -879,7 +879,7 @@ const MessagesPage = () => {
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            Tất cả
+            All
             {filterTab === 'all' && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"></div>
             )}
@@ -892,7 +892,7 @@ const MessagesPage = () => {
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            Chưa đọc
+            Unread
             {filterTab === 'unread' && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"></div>
             )}
@@ -905,7 +905,7 @@ const MessagesPage = () => {
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            Nhóm
+            Groups
             {filterTab === 'groups' && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"></div>
             )}
@@ -914,23 +914,23 @@ const MessagesPage = () => {
         
         <div className="flex-1 overflow-y-auto">
           {loading ? (
-            <div className="p-4 text-center text-gray-500">Đang tải...</div>
+            <div className="p-4 text-center text-gray-500">Loading...</div>
           ) : sortedConversations.length > 0 ? (
             sortedConversations.map((conversation) => {
               const otherUser = getOtherUser(conversation);
               const displayName = conversation.type === 'DIRECT' && otherUser
                 ? otherUser.username
-                : conversation.name || 'Nhóm chat';
+                : conversation.name || 'Group chat';
               const displayAvatar = conversation.type === 'DIRECT' && otherUser
                 ? otherUser.avatar
                 : conversation.avatar;
               const isSelected = selectedConversation?.id === conversation.id;
               const lastMessage = conversation.lastMessage;
               const preview = lastMessage?.isDeleted 
-                ? 'Tin nhắn đã bị thu hồi'
+                ? 'Message recalled'
                 : lastMessage?.imageUrl 
-                  ? '📷 Hình ảnh'
-                  : lastMessage?.content || 'Chưa có tin nhắn';
+                  ? '📷 Image'
+                  : lastMessage?.content || 'No message';
 
               return (
                 <div
@@ -981,7 +981,7 @@ const MessagesPage = () => {
           ) : (
             <div className="p-4 text-center text-gray-500">
               <FiMessageSquare className="mx-auto mb-2 text-4xl text-gray-300" />
-              <p>Chưa có cuộc trò chuyện nào</p>
+              <p>No conversations yet</p>
             </div>
           )}
         </div>
@@ -1020,26 +1020,26 @@ const MessagesPage = () => {
                         {selectedConversation.type === 'DIRECT' && (
                           <div className="flex items-center gap-1">
                             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                            <p className="text-xs text-green-600 font-medium">Đang hoạt động</p>
+                            <p className="text-xs text-green-600 font-medium">Active</p>
                           </div>
                         )}
                         {selectedConversation.type === 'GROUP' && (
                           <p className="text-xs text-gray-500">
-                            {selectedConversation.participants.length} thành viên
+                            {selectedConversation.participants.length} members
                           </p>
                         )}
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
                       {!isConnected && (
-                        <span className="text-xs text-red-500">Mất kết nối</span>
+                        <span className="text-xs text-red-500">Disconnected</span>
                       )}
                       {selectedConversation.type === 'GROUP' && (
                         <>
                           <button
                             onClick={() => setShowMembersList(true)}
                             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                            title="Xem thành viên"
+                            title="View members"
                           >
                             <FiUsers className="w-5 h-5 text-gray-600" />
                           </button>
@@ -1047,7 +1047,7 @@ const MessagesPage = () => {
                             <button
                               onClick={() => setShowAddMember(true)}
                               className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                              title="Thêm thành viên"
+                              title="Add member"
                             >
                               <FiPlus className="w-5 h-5 text-gray-600" />
                             </button>
@@ -1070,15 +1070,15 @@ const MessagesPage = () => {
               className="flex-1 overflow-y-auto p-4 bg-gray-50 min-h-0"
             >
               {loadingMore && (
-                <div className="text-center py-2 text-sm text-gray-500">
-                  Đang tải thêm...
+                  <div className="text-center py-2 text-sm text-gray-500">
+                  Loading more...
                 </div>
               )}
               {loading && messages.length === 0 ? (
                 <div className="flex items-center justify-center h-full">
                   <div className="text-center text-gray-500">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
-                    <p>Đang tải tin nhắn...</p>
+                    <p>Loading messages...</p>
                   </div>
                 </div>
               ) : groupedMessages.length > 0 ? (
@@ -1182,7 +1182,7 @@ const MessagesPage = () => {
                                 
                                 {message.content && (
                                   <p className="text-sm whitespace-pre-wrap break-words">
-                                    {isDeleted ? 'Tin nhắn đã bị thu hồi' : message.content}
+                                    {isDeleted ? 'Message recalled' : message.content}
                                   </p>
                                 )}
                                 
@@ -1239,10 +1239,10 @@ const MessagesPage = () => {
                       </div>
                     </div>
                     <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                      Chưa có tin nhắn nào
+                      No messages yet
                     </h3>
                     <p className="text-sm text-gray-500 max-w-xs mx-auto">
-                      Bắt đầu cuộc trò chuyện bằng cách gửi tin nhắn đầu tiên
+                      Start the conversation by sending the first message
                     </p>
                   </div>
                 </div>
@@ -1275,7 +1275,7 @@ const MessagesPage = () => {
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
                   className="p-2 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-50"
-                  title="Gửi hình ảnh"
+                  title="Send image"
                 >
                   <FiImage className="w-5 h-5 text-gray-600" />
                 </button>
@@ -1290,7 +1290,7 @@ const MessagesPage = () => {
                       handleSendMessage();
                     }
                   }}
-                  placeholder="Nhập tin nhắn..."
+                  placeholder="Type a message..."
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 
@@ -1313,9 +1313,9 @@ const MessagesPage = () => {
             <div className="text-center">
               <FiMessageSquare className="mx-auto mb-4 text-6xl text-gray-300" />
               <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                Chọn một cuộc trò chuyện
+                Select a conversation
               </h3>
-              <p className="text-gray-500">Chọn từ danh sách bên trái để bắt đầu trò chuyện</p>
+              <p className="text-gray-500">Choose from the list on the left to start chatting</p>
             </div>
           </div>
         )}
@@ -1326,7 +1326,7 @@ const MessagesPage = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold">Tạo nhóm chat</h3>
+              <h3 className="text-xl font-bold">Create group chat</h3>
               <button
                 onClick={() => {
                   setShowCreateGroup(false);
@@ -1344,26 +1344,26 @@ const MessagesPage = () => {
             
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tên nhóm
+                Group name
               </label>
               <input
                 type="text"
                 value={groupName}
                 onChange={(e) => setGroupName(e.target.value)}
-                placeholder="Nhập tên nhóm..."
+                placeholder="Enter group name..."
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Thành viên ({selectedUsers.length})
+                Members ({selectedUsers.length})
               </label>
               <button
                 onClick={() => setShowUserList(!showUserList)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg text-left hover:bg-gray-50 flex items-center justify-between"
               >
-                <span>Chọn thành viên...</span>
+                <span>Select members...</span>
                 <span className="text-gray-400">{showUserList ? '▲' : '▼'}</span>
               </button>
               {showUserList && (
@@ -1374,7 +1374,7 @@ const MessagesPage = () => {
                       <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <input
                         type="text"
-                        placeholder="Tìm kiếm người dùng..."
+                        placeholder="Search users..."
                         value={searchFollowingQuery}
                         onChange={(e) => setSearchFollowingQuery(e.target.value)}
                         className="w-full pl-10 pr-4 py-2 bg-gray-50 rounded-lg border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
@@ -1501,7 +1501,7 @@ const MessagesPage = () => {
                     {selectedUsers.length > 0 && (
                       <div className="px-3 py-2 bg-blue-50 border-t border-gray-200">
                         <p className="text-xs font-semibold text-blue-600">
-                          Đã chọn: {selectedUsers.length} thành viên
+                          Selected: {selectedUsers.length} members
                         </p>
                       </div>
                     )}
@@ -1522,14 +1522,14 @@ const MessagesPage = () => {
                 }}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Hủy
+                Cancel
               </button>
               <button
                 onClick={handleCreateGroup}
                 disabled={!groupName.trim() || selectedUsers.length === 0}
                 className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Tạo nhóm
+                Create group
               </button>
             </div>
           </div>
@@ -1541,7 +1541,7 @@ const MessagesPage = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold">Thêm thành viên</h3>
+              <h3 className="text-xl font-bold">Add member</h3>
               <button
                 onClick={() => {
                   setShowAddMember(false);
@@ -1564,7 +1564,7 @@ const MessagesPage = () => {
                 onClick={() => setShowUserListToAdd(!showUserListToAdd)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg text-left hover:bg-gray-50 flex items-center justify-between"
               >
-                <span>Chọn thành viên...</span>
+                <span>Select members...</span>
                 <span className="text-gray-400">{showUserListToAdd ? '▲' : '▼'}</span>
               </button>
               {showUserListToAdd && (
@@ -1575,7 +1575,7 @@ const MessagesPage = () => {
                       <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <input
                         type="text"
-                        placeholder="Tìm kiếm người dùng..."
+                        placeholder="Search users..."
                         value={searchAddMemberQuery}
                         onChange={(e) => setSearchAddMemberQuery(e.target.value)}
                         className="w-full pl-10 pr-4 py-2 bg-gray-50 rounded-lg border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
@@ -1639,8 +1639,8 @@ const MessagesPage = () => {
                           </>
                         ) : (
                           <div className="p-4 text-center text-sm text-gray-500">
-                            <p>Bạn chưa theo dõi ai</p>
-                            <p className="text-xs mt-1">Tìm kiếm để thêm thành viên vào nhóm</p>
+                            <p>You are not following anyone</p>
+                            <p className="text-xs mt-1">Search to add members to the group</p>
                           </div>
                         )}
                       </>
@@ -1650,11 +1650,11 @@ const MessagesPage = () => {
                     {searchAddMemberQuery.trim().length >= 2 && (
                       <>
                         {loadingSearchToAdd ? (
-                          <div className="p-4 text-center text-sm text-gray-500">Đang tìm kiếm...</div>
+                          <div className="p-4 text-center text-sm text-gray-500">Searching...</div>
                         ) : searchedUsersToAdd.length > 0 ? (
                           <>
                             <div className="px-3 py-2 bg-gray-50 border-b border-gray-200">
-                              <p className="text-xs font-semibold text-gray-600">Kết quả tìm kiếm</p>
+                              <p className="text-xs font-semibold text-gray-600">Search results</p>
                             </div>
                             {searchedUsersToAdd.map((user) => {
                               const isSelected = selectedUsersToAdd.includes(user.userId);
@@ -1683,7 +1683,7 @@ const MessagesPage = () => {
                                       {user.username}
                                     </p>
                                     {isFollowing && (
-                                      <p className="text-xs text-blue-600">Đang theo dõi</p>
+                                      <p className="text-xs text-blue-600">Following</p>
                                     )}
                                   </div>
                                   {isSelected && (
@@ -1697,7 +1697,7 @@ const MessagesPage = () => {
                           </>
                         ) : (
                           <div className="p-4 text-center text-sm text-gray-500">
-                            Không tìm thấy người dùng
+                            No users found
                           </div>
                         )}
                       </>
@@ -1707,7 +1707,7 @@ const MessagesPage = () => {
                     {selectedUsersToAdd.length > 0 && (
                       <div className="px-3 py-2 bg-blue-50 border-t border-gray-200">
                         <p className="text-xs font-semibold text-blue-600">
-                          Đã chọn: {selectedUsersToAdd.length} thành viên
+                          Selected: {selectedUsersToAdd.length} members
                         </p>
                       </div>
                     )}
@@ -1727,14 +1727,14 @@ const MessagesPage = () => {
                 }}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Hủy
+                Cancel
               </button>
               <button
                 onClick={handleAddMembers}
                 disabled={selectedUsersToAdd.length === 0 || addingMembers}
                 className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {addingMembers ? 'Đang thêm...' : 'Thêm thành viên'}
+                {addingMembers ? 'Adding...' : 'Add members'}
               </button>
             </div>
           </div>
@@ -1747,9 +1747,9 @@ const MessagesPage = () => {
           <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[80vh] flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-xl font-bold">Thành viên nhóm</h3>
+                <h3 className="text-xl font-bold">Group members</h3>
                 <p className="text-sm text-gray-500 mt-1">
-                  {selectedConversation.participants.length} thành viên
+                  {selectedConversation.participants.length} members
                 </p>
               </div>
               <button
@@ -1786,7 +1786,7 @@ const MessagesPage = () => {
                           </p>
                           {(isCreator || isAdmin) && (
                             <span className="px-2 py-0.5 text-xs font-semibold bg-blue-100 text-blue-700 rounded-full">
-                              Trưởng nhóm
+                              Group admin
                             </span>
                           )}
                           {isCurrentUser && (
@@ -1806,7 +1806,7 @@ const MessagesPage = () => {
                           onClick={() => handleTransferAdmin(participant.userId)}
                           disabled={transferringAdminId === participant.userId}
                           className="p-2 hover:bg-blue-50 rounded-full transition-colors disabled:opacity-50"
-                          title="Bổ nhiệm làm trưởng nhóm"
+                          title="Appoint as group admin"
                         >
                           {transferringAdminId === participant.userId ? (
                             <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
@@ -1820,7 +1820,7 @@ const MessagesPage = () => {
                           onClick={() => handleRemoveMember(participant.userId)}
                           disabled={removingMemberId === participant.userId}
                           className="p-2 hover:bg-red-50 rounded-full transition-colors disabled:opacity-50"
-                          title="Xóa thành viên"
+                          title="Remove member"
                         >
                           {removingMemberId === participant.userId ? (
                             <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
@@ -1842,14 +1842,14 @@ const MessagesPage = () => {
                   disabled={leavingGroup}
                   className="w-full px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                 >
-                  {leavingGroup ? 'Đang rời nhóm...' : 'Rời nhóm'}
+                  {leavingGroup ? 'Leaving group...' : 'Leave group'}
                 </button>
               )}
               <button
                 onClick={() => setShowMembersList(false)}
                 className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
               >
-                Đóng
+                Close
               </button>
             </div>
           </div>
@@ -1861,7 +1861,7 @@ const MessagesPage = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold">Rời nhóm</h3>
+              <h3 className="text-xl font-bold">Leave group</h3>
               <button
                 onClick={() => {
                   setShowLeaveGroupModal(false);
@@ -1874,7 +1874,7 @@ const MessagesPage = () => {
             </div>
             
             <p className="text-sm text-gray-600 mb-4">
-              Bạn đang là trưởng nhóm. Vui lòng chọn thành viên khác làm trưởng nhóm trước khi rời nhóm.
+              You are the group admin. Please select another member as group admin before leaving.
             </p>
 
             <div className="max-h-64 overflow-y-auto mb-4">
@@ -1909,7 +1909,7 @@ const MessagesPage = () => {
 
             {selectedConversation.participants.filter((p) => p.userId !== user?.id && p.role === 'MEMBER').length === 0 && (
               <p className="text-sm text-red-600 mb-4">
-                Không có thành viên nào để bổ nhiệm làm trưởng nhóm.
+                No members available to appoint as group admin.
               </p>
             )}
 
@@ -1921,14 +1921,14 @@ const MessagesPage = () => {
                 }}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Hủy
+                Cancel
               </button>
               <button
                 onClick={handleConfirmLeaveGroup}
                 disabled={!selectedNewAdminId || leavingGroup}
                 className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {leavingGroup ? 'Đang rời nhóm...' : 'Xác nhận rời nhóm'}
+                {leavingGroup ? 'Leaving group...' : 'Confirm leave group'}
               </button>
             </div>
           </div>

@@ -30,6 +30,13 @@ const UserMenu = () => {
 
   if (!user) return null;
 
+  // Kiểm tra nếu user là admin
+  const role = user?.role || (Array.isArray(user?.roles) ? user.roles[0] : undefined);
+  const isAdmin =
+    role === 'ROLE_ADMIN' ||
+    role === 'ADMIN' ||
+    (Array.isArray(user?.roles) && user.roles.includes('ROLE_ADMIN'));
+
   return (
     <div className="relative" ref={menuRef}>
       <Tooltip text="Tài khoản">
@@ -68,6 +75,18 @@ const UserMenu = () => {
           >
             My Submissions
           </Link>
+          {isAdmin && (
+            <>
+              <hr className="my-1" />
+              <Link
+                to="/admin"
+                className="block px-4 py-2 text-sm text-blue-600 font-medium hover:bg-blue-50"
+                onClick={() => setIsOpen(false)}
+              >
+                Admin Dashboard
+              </Link>
+            </>
+          )}
           <hr className="my-1" />
           <button
             onClick={handleLogout}

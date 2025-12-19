@@ -9,8 +9,8 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (data: LoginRequest) => Promise<void>;
-  register: (data: RegisterRequest) => Promise<void>;
+  login: (data: LoginRequest) => Promise<User>;
+  register: (data: RegisterRequest) => Promise<User>;
   logout: () => void;
   googleAuth: () => Promise<void>;
 }
@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     loadUser();
   }, []);
 
-  const login = async (data: LoginRequest) => {
+  const login = async (data: LoginRequest): Promise<User> => {
     try {
       const response = await authApi.login(data);
       storage.setToken(response.token);
@@ -79,6 +79,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       storage.setUser(userData);
       setUser(userData);
       toast.success('Đăng nhập thành công!');
+      return userData;
     } catch (error: any) {
       const message = error.response?.data?.message || 'Đăng nhập thất bại';
       toast.error(message);
@@ -86,7 +87,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const register = async (data: RegisterRequest) => {
+  const register = async (data: RegisterRequest): Promise<User> => {
     try {
       const response = await authApi.register(data);
       storage.setToken(response.token);
@@ -102,6 +103,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       storage.setUser(userData);
       setUser(userData);
       toast.success('Đăng ký thành công!');
+      return userData;
     } catch (error: any) {
       const message = error.response?.data?.message || 'Đăng ký thất bại';
       toast.error(message);

@@ -4,10 +4,9 @@ export interface ProblemResponse {
   id: number;
   code: string;
   title: string;
-  slug: string;
   level: 'EASY' | 'MEDIUM' | 'HARD';
   timeLimitMs: number;
-  memoryLimitMb: number;
+  memoryLimitMb?: number; // Giới hạn bộ nhớ RAM (megabytes), mặc định: 256MB
   authorId: number;
   authorName: string;
   categories: CategoryResponse[];
@@ -15,19 +14,18 @@ export interface ProblemResponse {
   languages: LanguageResponse[];
   isBookmarked?: boolean;
   status?: ProblemStatus;
+  isPublic?: boolean; // true for public problems, false for premium/private
+  isContest?: boolean; // true for contest-only problems
 }
 
 export interface ProblemDetailResponse {
   id: number;
   code: string;
   title: string;
-  slug: string;
   content: string; // HTML content
   level: 'EASY' | 'MEDIUM' | 'HARD';
-  sampleInput?: string;
-  sampleOutput?: string;
   timeLimitMs: number;
-  memoryLimitMb: number;
+  memoryLimitMb?: number; // Giới hạn bộ nhớ RAM (megabytes), mặc định: 256MB
   authorId?: number;
   authorName?: string;
   categories: CategoryResponse[];

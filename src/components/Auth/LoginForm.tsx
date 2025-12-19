@@ -32,8 +32,14 @@ const LoginForm = () => {
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
-      await login(data);
-      navigate(ROUTES.HOME);
+      const user = await login(data);
+      // Kiểm tra role và redirect đến admin nếu là admin
+      const role = user?.role || '';
+      if (role === 'ROLE_ADMIN' || role === 'ADMIN') {
+        navigate('/admin');
+      } else {
+        navigate(ROUTES.HOME);
+      }
     } catch (error) {
       // Error đã được xử lý trong AuthContext
     } finally {

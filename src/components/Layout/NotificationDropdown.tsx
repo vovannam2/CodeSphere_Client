@@ -3,9 +3,10 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/utils/constants';
 import { notificationApi, type NotificationResponse } from '@/apis/notification.api';
 import { websocketService } from '@/services/websocket.service';
+import { FiBell, FiCheck, FiMoreHorizontal } from 'react-icons/fi';
 import { useAuth } from '@/hooks/useAuth';
 import { formatDistanceToNow } from 'date-fns';
-import { vi } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
 import Avatar from '@/components/Avatar';
 import toast from 'react-hot-toast';
 import Tooltip from './Tooltip';
@@ -149,7 +150,7 @@ const NotificationDropdown = () => {
 
   const formatTime = (dateString: string) => {
     try {
-      return formatDistanceToNow(new Date(dateString), { addSuffix: true, locale: vi });
+      return formatDistanceToNow(new Date(dateString), { addSuffix: true, locale: enUS });
     } catch {
       return dateString;
     }
@@ -177,86 +178,82 @@ const NotificationDropdown = () => {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <Tooltip text="Thông báo">
+      <Tooltip text="Notifications">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`relative p-2 rounded-full transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-gray-100 ${
+          className={`relative p-2 rounded-xl transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-slate-50 border border-transparent ${
             isActive
-              ? 'text-blue-600 bg-blue-100'
-              : 'text-gray-600'
+              ? 'text-blue-600 bg-blue-50 border-blue-100'
+              : 'text-slate-500 hover:text-slate-900 hover:border-slate-200'
           }`}
         >
-          <svg
-            className="w-6 h-6 transition-transform duration-200 group-hover:scale-110"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-            />
-          </svg>
+          <FiBell className={`w-6 h-6 transition-transform duration-200 group-hover:scale-110 ${isActive ? 'fill-blue-600/10' : ''}`} />
           {unreadCount > 0 && (
-            <span className="absolute top-0 right-0 block h-4 w-4 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center border-2 border-white">
-              {unreadCount > 9 ? '9+' : unreadCount}
+            <span className="absolute -top-1 -right-1 block h-5 w-5 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center border-2 border-white shadow-sm shadow-rose-500/30">
+              {unreadCount}
             </span>
           )}
         </button>
       </Tooltip>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg z-50 border border-gray-200 max-h-96 overflow-y-auto">
-          <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-            <h3 className="font-semibold text-gray-900">Thông báo</h3>
+        <div className="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-xl z-50 border border-slate-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="p-4 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+            <h3 className="font-bold text-slate-900">Notifications</h3>
             <Link
               to={ROUTES.NOTIFICATIONS}
-              className="text-sm text-blue-600 hover:text-blue-700"
+              className="text-xs font-bold text-blue-600 hover:text-blue-700 uppercase tracking-wider"
               onClick={() => setIsOpen(false)}
             >
-              Xem tất cả
+              View all
             </Link>
           </div>
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-slate-50 max-h-[400px] overflow-y-auto custom-scrollbar">
             {loading ? (
-              <div className="p-4 text-center text-gray-500 text-sm">Đang tải...</div>
+              <div className="p-8 text-center text-slate-400">
+                <div className="animate-spin w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full mx-auto mb-2"></div>
+                <p className="text-sm">Loading...</p>
+              </div>
             ) : notifications.length > 0 ? (
               notifications.map((notification) => (
                 <div
                   key={notification.id}
                   onClick={() => handleNotificationClick(notification)}
-                  className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${
-                    !notification.isRead ? 'bg-blue-50' : ''
+                  className={`p-4 hover:bg-slate-50 cursor-pointer transition-colors ${
+                    !notification.isRead ? 'bg-blue-50/50' : ''
                   }`}
                 >
                   <div className="flex items-start gap-3">
-                    {notification.relatedUserAvatar ? (
-                      <Avatar
-                        src={notification.relatedUserAvatar}
-                        alt={notification.relatedUserName || ''}
-                        size="sm"
-                      />
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-lg">
-                        {getNotificationIcon(notification.type)}
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">{notification.title}</p>
-                      <p className="text-xs text-gray-600 mt-1">{notification.content}</p>
-                      <p className="text-xs text-gray-500 mt-1">{formatTime(notification.createdAt)}</p>
+                    <div className="relative">
+                      {notification.relatedUserAvatar ? (
+                        <Avatar
+                          src={notification.relatedUserAvatar}
+                          alt={notification.relatedUserName || ''}
+                          size="sm"
+                        />
+                      ) : (
+                        <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-lg shadow-sm">
+                          {getNotificationIcon(notification.type)}
+                        </div>
+                      )}
+                      {!notification.isRead && (
+                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-600 rounded-full border-2 border-white"></div>
+                      )}
                     </div>
-                    {!notification.isRead && (
-                      <div className="w-2 h-2 rounded-full bg-blue-600 flex-shrink-0 mt-2"></div>
-                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13px] font-bold text-slate-900 leading-snug">{notification.title}</p>
+                      <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{notification.content}</p>
+                      <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-wider">{formatTime(notification.createdAt)}</p>
+                    </div>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="p-4 text-center text-gray-500 text-sm">
-                Không có thông báo mới
+              <div className="p-8 text-center text-slate-400">
+                <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <FiBell size={24} className="opacity-20" />
+                </div>
+                <p className="text-sm">No new notifications</p>
               </div>
             )}
           </div>

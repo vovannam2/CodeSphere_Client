@@ -21,6 +21,7 @@ import {
   FiBarChart2,
   FiStar
 } from 'react-icons/fi';
+import bannerProblem from '@/assets/Banner_Problem.png';
 
 const ProblemsPage = () => {
   const [searchParams] = useSearchParams();
@@ -49,22 +50,22 @@ const ProblemsPage = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>('');
 
   const difficulties = [
-    { value: '', label: 'Tất cả' },
-    { value: 'EASY', label: 'Dễ' },
-    { value: 'MEDIUM', label: 'Trung bình' },
-    { value: 'HARD', label: 'Khó' },
+    { value: '', label: 'All' },
+    { value: 'EASY', label: 'Easy' },
+    { value: 'MEDIUM', label: 'Medium' },
+    { value: 'HARD', label: 'Hard' },
   ];
 
   const statuses = [
-    { value: '', label: 'Tất cả' },
-    { value: 'NOT_ATTEMPTED', label: 'Chưa làm' },
-    { value: 'ATTEMPTED_NOT_COMPLETED', label: 'Chưa hoàn thành' },
-    { value: 'COMPLETED', label: 'Đã hoàn thành' },
+    { value: '', label: 'All' },
+    { value: 'NOT_ATTEMPTED', label: 'Not Attempted' },
+    { value: 'ATTEMPTED_NOT_COMPLETED', label: 'Attempted' },
+    { value: 'COMPLETED', label: 'Completed' },
   ];
 
   const getStatusLabel = () => {
     const status = statuses.find(s => s.value === selectedStatus);
-    return status ? status.label : 'Trạng thái';
+    return status ? status.label : 'Status';
   };
 
   // Topic icons mapping
@@ -202,9 +203,9 @@ const ProblemsPage = () => {
       HARD: 'text-red-600 bg-red-50',
     };
     const labels = {
-      EASY: 'Dễ',
-      MEDIUM: 'Trung bình',
-      HARD: 'Khó',
+      EASY: 'Easy',
+      MEDIUM: 'Medium',
+      HARD: 'Hard',
     };
     return (
       <span className={`px-2.5 py-1 rounded text-xs font-medium ${colors[level as keyof typeof colors] || 'text-gray-600 bg-gray-50'}`}>
@@ -302,7 +303,7 @@ const ProblemsPage = () => {
       
       toast.success(response.message);
     } catch (error: any) {
-      const message = error.response?.data?.message || 'Lỗi khi đánh dấu sao bài tập';
+      const message = error.response?.data?.message || 'Error bookmarking problem';
       toast.error(message);
       console.error('Bookmark error:', error);
     } finally {
@@ -319,6 +320,19 @@ const ProblemsPage = () => {
   return (
     <div className="min-h-screen bg-white">
       <Container>
+        <div className="pt-8">
+          {/* Banner */}
+          <div className="mb-6 flex justify-center">
+            <div className="w-full max-w-7xl">
+              <img
+                src={bannerProblem}
+                alt="Problems Banner"
+                className="w-full h-auto rounded-lg object-cover"
+                style={{ maxHeight: '400px', objectFit: 'cover' }}
+              />
+            </div>
+          </div>
+
         {/* Topic Filters - Top Section */}
         <div className="py-6 border-b border-gray-200">
           <div className="flex items-center gap-2 overflow-x-auto pb-2">
@@ -334,7 +348,7 @@ const ProblemsPage = () => {
                 <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
                 <path d="M8 11a1 1 0 100-2 1 1 0 000 2z" fill="currentColor" />
               </svg>
-              Tất cả chủ đề
+              All Topics
             </button>
             {!isLoadingCategories && categories.slice(0, 6).map((category) => (
               <button
@@ -356,14 +370,14 @@ const ProblemsPage = () => {
         {/* Search and Filter Section */}
         <div className="py-4 flex items-center gap-4 flex-wrap">
           {/* Search Bar */}
-          <form onSubmit={handleSearch} className="flex-1 min-w-[200px]">
+          <form onSubmit={handleSearch} className="flex-1 min-w-[200px] max-w-md">
             <div className="relative">
               <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Tìm kiếm bài tập..."
+                placeholder="Search problems..."
                 className="w-full pl-10 pr-4 py-2.5 bg-gray-100 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
@@ -376,7 +390,7 @@ const ProblemsPage = () => {
               className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-200 transition-colors"
             >
               <FiChevronDown className={`w-4 h-4 transition-transform ${isDifficultyOpen ? 'rotate-180' : ''}`} />
-              <span className="text-sm font-medium">Độ khó</span>
+              <span className="text-sm font-medium">Difficulty</span>
             </button>
             {isDifficultyOpen && (
               <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
@@ -443,7 +457,7 @@ const ProblemsPage = () => {
               </div>
             ) : problems.length === 0 ? (
               <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-                <p className="text-gray-500 text-lg">Không tìm thấy bài tập nào</p>
+                <p className="text-gray-500 text-lg">No problems found</p>
               </div>
             ) : (
               <div className="space-y-0 border border-gray-200 rounded-lg overflow-hidden">
@@ -473,6 +487,11 @@ const ProblemsPage = () => {
                             <h3 className="text-base font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
                               {getCleanTitle(problem.title, problem.code)}
                             </h3>
+                            {problem.isContest && (
+                              <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium text-blue-700 bg-blue-100 rounded">
+                                Contest-only
+                              </span>
+                            )}
                           </div>
 
                           {/* Topics/Categories */}
@@ -525,7 +544,7 @@ const ProblemsPage = () => {
                       onClick={(e) => handleToggleBookmark(e, problem.id)}
                       disabled={bookmarkingProblemIds.has(problem.id)}
                       className="flex-shrink-0 p-2 hover:bg-yellow-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      title={problem.isBookmarked ? 'Bỏ đánh dấu sao' : 'Đánh dấu sao'}
+                      title={problem.isBookmarked ? 'Remove bookmark' : 'Bookmark'}
                     >
                       <FiStar 
                         className={`w-5 h-5 transition-colors ${
@@ -649,6 +668,7 @@ const ProblemsPage = () => {
               </div>
             </div>
           </div>
+        </div>
         </div>
 
       </Container>

@@ -120,13 +120,16 @@ const ProblemListSidebar = ({
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        {isSolved && (
-                          <FiCheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
-                        )}
-                        <span className={`text-sm font-medium ${isSolved ? 'text-gray-900' : 'text-gray-700'}`}>
-                          {p.code || p.id}. {p.title}
+                        {/* Icon placeholder để giữ alignment */}
+                        <div className="w-4 h-4 flex-shrink-0 flex items-center justify-center">
+                          {isSolved && (
+                            <FiCheckCircle className="w-4 h-4 text-green-600" />
+                          )}
+                        </div>
+                        <span className={`text-sm font-medium flex-1 ${isSolved ? 'text-gray-900' : 'text-gray-700'}`}>
+                          {p.title}
                         </span>
-                        <span className={`ml-auto text-xs font-medium ${
+                        <span className={`text-xs font-medium flex-shrink-0 ${
                           p.level === 'EASY' ? 'text-green-600' :
                           p.level === 'MEDIUM' ? 'text-yellow-600' :
                           'text-red-600'

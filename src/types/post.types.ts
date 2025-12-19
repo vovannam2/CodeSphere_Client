@@ -17,6 +17,8 @@ export interface PostResponse {
   id: number;
   title: string;
   content: string;
+  imageUrl?: string | null; // Deprecated, use images
+  images?: string[] | null; // List of image URLs
   isAnonymous: boolean;
   isResolved: boolean;
   authorId: number;
@@ -42,6 +44,8 @@ export interface PostDetailResponse extends PostResponse {
 export interface CreatePostRequest {
   title: string;
   content: string;
+  imageUrl?: string; // Deprecated, use images
+  images?: string[]; // List of image URLs
   isAnonymous?: boolean;
   tagNames?: string[]; // Tên các tag (có thể tạo tag mới)
 }

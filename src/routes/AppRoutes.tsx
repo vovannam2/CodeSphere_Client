@@ -17,6 +17,9 @@ import AdminProblemsPage from '@/pages/admin/AdminProblemsPage';
 import AdminProblemForm from '@/pages/admin/AdminProblemForm';
 import AdminTagsPage from '@/pages/admin/AdminTagsPage';
 import AdminTestcasesPage from '@/pages/admin/AdminTestcasesPage';
+import AdminUsersPage from '@/pages/admin/AdminUsersPage';
+import AdminContestsPage from '@/pages/admin/AdminContestsPage';
+import AdminContestForm from '@/pages/admin/AdminContestForm';
 import ProfilePage from '@/pages/ProfilePage';
 import PublicProfilePage from '@/pages/PublicProfilePage';
 import DiscussPage from '@/pages/DiscussPage';
@@ -24,7 +27,10 @@ import CreatePostPage from '@/pages/CreatePostPage';
 import PostDetailPage from '@/pages/PostDetailPage';
 import MessagesPage from '@/pages/MessagesPage';
 import LeaderboardPage from '@/pages/LeaderboardPage';
+import ContestPage from '@/pages/ContestPage';
+import ContestDetailPage from '@/pages/ContestDetailPage';
 import { ROUTES } from '@/utils/constants';
+import ProblemDetailPage from '@/pages/ProblemDetailPage';
 
 const router = createBrowserRouter([
   {
@@ -86,16 +92,17 @@ const router = createBrowserRouter([
       </MainLayout>
     ),
   },
-  // Placeholder routes - sẽ implement sau
   {
     path: ROUTES.CONTEST,
     element: (
       <MainLayout>
-        <div className="py-12 text-center">
-          <h1 className="text-2xl font-bold">Contest Page - Coming Soon</h1>
-        </div>
+        <ContestPage />
       </MainLayout>
     ),
+  },
+  {
+    path: `${ROUTES.CONTEST}/:id`,
+    element: <ContestDetailPage />,
   },
   {
     path: ROUTES.CREATE_POST,
@@ -171,6 +178,22 @@ const router = createBrowserRouter([
       {
         path: 'testcases',
         element: <AdminTestcasesPage />,
+      },
+      {
+        path: 'users',
+        element: <AdminUsersPage />,
+      },
+      {
+        path: 'contests',
+        element: <AdminContestsPage />,
+      },
+      {
+        path: 'contests/new',
+        element: <AdminContestForm />,
+      },
+      {
+        path: 'contests/:id/edit',
+        element: <AdminContestForm />,
       },
     ],
   },

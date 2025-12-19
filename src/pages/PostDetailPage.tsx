@@ -3,13 +3,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Container from '@/components/Layout/Container';
 import Avatar from '@/components/Avatar';
 import PostCommentList from '@/components/Post/PostCommentList';
-import { FiHeart, FiMessageCircle, FiArrowLeft, FiCheckCircle, FiEye } from 'react-icons/fi';
+import { FiHeart, FiMessageCircle, FiArrowLeft, FiCheckCircle, FiEye, FiX } from 'react-icons/fi';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { postApi } from '@/apis/post.api';
 import type { PostDetailResponse } from '@/types/post.types';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { createPortal } from 'react-dom';
 import MDEditor from '@uiw/react-md-editor';
 import '@uiw/react-md-editor/markdown-editor.css';
 
@@ -20,6 +21,7 @@ const PostDetailPage = () => {
   const [post, setPost] = useState<PostDetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [isVoting, setIsVoting] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
@@ -143,7 +145,7 @@ const PostDetailPage = () => {
 
             {/* Tags */}
             {post.tags && post.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-6">
+              <div className="flex flex-wrap gap-2 mb-4">
                 {post.tags.map((tag) => (
                   <span
                     key={tag.id}
@@ -153,6 +155,104 @@ const PostDetailPage = () => {
                   </span>
                 ))}
               </div>
+            )}
+
+            {/* Images */}
+            {((post.images && post.images.length > 0) || post.imageUrl) && (
+              <div className="mb-6 rounded-lg overflow-hidden">
+                {post.images && post.images.length > 0 ? (
+                  post.images.length === 1 ? (
+                    <img
+                      src={post.images[0]}
+                      alt="Post image"
+                      onClick={() => setSelectedImage(post.images[0])}
+                      className="w-full h-auto max-h-[600px] object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                    />
+                  ) : post.images.length === 2 ? (
+                    <div className="grid grid-cols-2 gap-1">
+                      {post.images.map((img, idx) => (
+                        <img
+                          key={idx}
+                          src={img}
+                          alt={`Post image ${idx + 1}`}
+                          onClick={() => setSelectedImage(img)}
+                          className="w-full h-64 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                        />
+                      ))}
+                    </div>
+                  ) : post.images.length === 3 ? (
+                    <div className="grid grid-cols-2 gap-1">
+                      <img
+                        src={post.images[0]}
+                        alt="Post image 1"
+                        onClick={() => setSelectedImage(post.images[0])}
+                        className="w-full h-64 object-cover row-span-2 cursor-pointer hover:opacity-90 transition-opacity"
+                      />
+                      <img
+                        src={post.images[1]}
+                        alt="Post image 2"
+                        onClick={() => setSelectedImage(post.images[1])}
+                        className="w-full h-32 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                      />
+                      <img
+                        src={post.images[2]}
+                        alt="Post image 3"
+                        onClick={() => setSelectedImage(post.images[2])}
+                        className="w-full h-32 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                      />
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-1">
+                      {post.images.slice(0, 4).map((img, idx) => (
+                        <div key={idx} className="relative">
+                          <img
+                            src={img}
+                            alt={`Post image ${idx + 1}`}
+                            onClick={() => setSelectedImage(img)}
+                            className="w-full h-48 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                          />
+                          {idx === 3 && post.images.length > 4 && (
+                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center cursor-pointer" onClick={() => setSelectedImage(post.images[0])}>
+                              <span className="text-white text-2xl font-bold">
+                                +{post.images.length - 4}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )
+                ) : post.imageUrl ? (
+                  <img
+                    src={post.imageUrl}
+                    alt="Post image"
+                    onClick={() => setSelectedImage(post.imageUrl!)}
+                    className="w-full h-auto max-h-[600px] object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                  />
+                ) : null}
+              </div>
+            )}
+
+            {/* Image Modal */}
+            {selectedImage && createPortal(
+              <div
+                className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 p-4"
+                onClick={() => setSelectedImage(null)}
+              >
+                <button
+                  onClick={() => setSelectedImage(null)}
+                  className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors"
+                >
+                  <FiX className="w-8 h-8" />
+                </button>
+                <img
+                  src={selectedImage}
+                  alt="Full size"
+                  className="max-w-full max-h-full object-contain"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>,
+              document.body
             )}
 
             {/* Footer - Actions */}
