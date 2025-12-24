@@ -564,7 +564,7 @@ const ProblemDetailPage = () => {
 
   const handleReview = async () => {
     if (!code.trim()) {
-      toast.error('Vui lòng nhập code trước khi review');
+      toast.error('Please enter code before reviewing');
       return;
     }
     if (!problem) return;
@@ -573,7 +573,7 @@ const ProblemDetailPage = () => {
       setReviewResult(null);
       const selectedLang = problem.languages.find(l => l.code === selectedLanguage);
       if (!selectedLang) {
-        toast.error('Ngôn ngữ không hợp lệ');
+        toast.error('Invalid language');
         return;
       }
       const response = await aiApi.reviewCode({
@@ -582,10 +582,10 @@ const ProblemDetailPage = () => {
         language: selectedLanguage
       });
       setReviewResult(response.review);
-      setActiveEditorTab('review'); // Chuyển sang tab Review thay vì mở modal
-      toast.success('Đánh giá code thành công!');
+      setActiveEditorTab('review'); // Switch to Review tab instead of opening modal
+      toast.success('Code review completed successfully!');
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Lỗi khi đánh giá code');
+      toast.error(error.response?.data?.message || 'Error reviewing code');
     } finally {
       setIsReviewing(false);
     }

@@ -10,8 +10,8 @@ import GoogleAuthButton from './GoogleAuthButton';
 import { ROUTES } from '@/utils/constants';
 
 const loginSchema = z.object({
-  email: z.string().email('Email không hợp lệ'),
-  password: z.string().min(1, 'Mật khẩu không được để trống'),
+  email: z.string().email('Invalid email'),
+  password: z.string().min(1, 'Password cannot be empty'),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -59,7 +59,7 @@ const LoginForm = () => {
       />
 
       <Input
-        label="Mật khẩu"
+        label="Password"
         type="password"
         {...register('password')}
         error={errors.password?.message}
@@ -73,11 +73,11 @@ const LoginForm = () => {
             type="checkbox" 
             className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer" 
           />
-          <span className="ml-2 text-sm text-gray-700">Ghi nhớ đăng nhập</span>
+          <span className="ml-2 text-sm text-gray-700">Remember me</span>
         </label>
-        <a href="#" className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors">
-          Quên mật khẩu?
-        </a>
+        <Link to={ROUTES.FORGOT_PASSWORD} className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors">
+          Forgot password?
+        </Link>
       </div>
 
       <Button 
@@ -86,7 +86,7 @@ const LoginForm = () => {
         className="w-full py-3 text-base font-semibold bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-200 transform hover:scale-[1.02]" 
         isLoading={isLoading}
       >
-        Đăng nhập
+        Sign in
       </Button>
 
       <div className="relative my-6">
@@ -94,19 +94,19 @@ const LoginForm = () => {
           <div className="w-full border-t border-gray-300"></div>
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="px-4 bg-white/80 text-gray-500 font-medium">Hoặc</span>
+          <span className="px-4 bg-white/80 text-gray-500 font-medium">Or</span>
         </div>
       </div>
 
       <GoogleAuthButton />
 
       <p className="text-center text-sm text-gray-600 pt-2">
-        Chưa có tài khoản?{' '}
+        Don't have an account?{' '}
         <Link 
           to={ROUTES.REGISTER} 
           className="font-semibold text-blue-600 hover:text-blue-700 transition-colors"
         >
-          Đăng ký ngay
+          Sign up now
         </Link>
       </p>
     </form>

@@ -9,6 +9,32 @@ export interface RegisterRequest {
   username?: string;
 }
 
+export interface RegisterInitRequest {
+  email: string;
+  password: string;
+  username: string;
+}
+
+export interface RegisterVerifyRequest {
+  email: string;
+  otp: string;
+}
+
+export interface ForgotPasswordInitRequest {
+  email: string;
+}
+
+export interface ForgotPasswordVerifyRequest {
+  email: string;
+  otp: string;
+  newPassword: string;
+}
+
+export interface ChangePasswordRequest {
+  oldPassword: string;
+  newPassword: string;
+}
+
 export interface AuthResponse {
   token: string;
   refreshToken: string;

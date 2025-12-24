@@ -74,5 +74,10 @@ export const contestApi = {
     const response = await apiClient.get<DataResponse<ContestRegistrationResponse[]>>(`/contests/${id}/registrations`);
     return response.data.data!;
   },
+
+  verifyAccessCode: async (accessCode: string): Promise<ContestResponse> => {
+    const response = await apiClient.post<DataResponse<ContestResponse>>('/contests/verify-access-code', { accessCode });
+    return response.data.data!;
+  },
 };
 

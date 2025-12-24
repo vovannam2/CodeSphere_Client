@@ -10,6 +10,7 @@ import ContestCountdown from '@/components/Contest/ContestCountdown';
 import ContestRegistrationModal from '@/components/Contest/ContestRegistrationModal';
 import ContestLeaderboard from '@/components/Contest/ContestLeaderboard';
 import StartContestConfirmModal from '@/components/Contest/StartContestConfirmModal';
+import ConfirmModal from '@/components/Modal/ConfirmModal';
 import { formatDateTime24h } from '@/utils/dateFormat';
 
 const ContestDetailPage = () => {
@@ -23,6 +24,7 @@ const ContestDetailPage = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'leaderboard' | 'total' | number>('total');
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [showStartConfirmModal, setShowStartConfirmModal] = useState(false);
+  const [showFinishConfirmModal, setShowFinishConfirmModal] = useState(false);
   const [startingContest, setStartingContest] = useState(false);
   const [finishingContest, setFinishingContest] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
@@ -38,9 +40,11 @@ const ContestDetailPage = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const fetchContest = async () => {
+  const fetchContest = async (showLoading = false) => {
     if (!id) return;
-    setLoading(true);
+    if (showLoading) {
+      setLoading(true);
+    }
     try {
       const data = await contestApi.getContestById(Number(id));
       setContest(data);
@@ -62,10 +66,14 @@ const ContestDetailPage = () => {
       }
     } catch (e: any) {
       console.error(e);
-      toast.error('Failed to fetch contest information');
-      navigate('/contest');
+      if (showLoading) {
+        toast.error('Failed to fetch contest information');
+        navigate('/contest');
+      }
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   };
 
@@ -109,16 +117,18 @@ const ContestDetailPage = () => {
       return;
     }
 
-    fetchContest();
+    // Initial load with loading indicator
+    fetchContest(true);
 
     // Auto refresh every 5 seconds when contest is PRACTICE and user has started
+    // Không set loading để tránh nháy trang
     const interval = setInterval(() => {
       if (contest?.contestType === 'PRACTICE' && contest.startedAt && contest.endedAt) {
         const now = new Date();
         const startedAt = new Date(contest.startedAt);
         const endedAt = new Date(contest.endedAt);
         if (now >= startedAt && now < endedAt) {
-          fetchContest();
+          fetchContest(false); // Không hiển thị loading
         }
       }
     }, 5000);
@@ -134,7 +144,7 @@ const ContestDetailPage = () => {
         const startedAt = new Date(contest.startedAt);
         const endedAt = new Date(contest.endedAt);
         if (now >= startedAt && now < endedAt) {
-          fetchContest();
+          fetchContest(false); // Không hiển thị loading
         }
       }
     };
@@ -156,8 +166,8 @@ const ContestDetailPage = () => {
         const currentTime = new Date();
         const startTime = new Date(contest.startTime!);
         if (currentTime >= startTime) {
-          // Contest đã bắt đầu → refresh data một lần
-          fetchContest();
+          // Contest đã bắt đầu → refresh data một lần (không hiển thị loading)
+          fetchContest(false);
           clearInterval(interval);
         }
       }, 1000); // Check mỗi giây
@@ -203,11 +213,12 @@ const ContestDetailPage = () => {
     }
   };
 
+  const handleFinishContestClick = () => {
+    setShowFinishConfirmModal(true);
+  };
+
   const handleFinishContest = async () => {
     if (!id) return;
-    if (!window.confirm('Are you sure you want to finish this contest? After finishing, you will not be able to submit anymore.')) {
-      return;
-    }
     setFinishingContest(true);
     try {
       await contestApi.finishContest(Number(id));
@@ -226,6 +237,7 @@ const ContestDetailPage = () => {
       toast.error(e?.response?.data?.message || 'Failed to finish contest');
     } finally {
       setFinishingContest(false);
+      setShowFinishConfirmModal(false);
     }
   };
 
@@ -537,7 +549,7 @@ const ContestDetailPage = () => {
                       {canViewProblems() && !isPracticeTimeExpired() ? (
                         // Đang làm bài → hiển thị nút "Hoàn thành"
                         <button
-                          onClick={handleFinishContest}
+                          onClick={handleFinishContestClick}
                           disabled={finishingContest}
                           className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
                         >
@@ -568,7 +580,7 @@ const ContestDetailPage = () => {
                       )}
                       {canViewProblems() && statusInfo?.status === 'ONGOING' && (
                         <button
-                          onClick={handleFinishContest}
+                          onClick={handleFinishContestClick}
                           disabled={finishingContest}
                           className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
                         >
@@ -609,10 +621,9 @@ const ContestDetailPage = () => {
                           targetTime={contest.endedAt} 
                           showDays={false} // PRACTICE contest không hiển thị ngày
                           onComplete={() => {
-                            // Refresh contest data khi hết thời gian
+                            // Refresh contest data khi hết thời gian (không hiển thị loading)
                             if (id) {
-                              contestApi.getContestById(Number(id)).then(setContest);
-                              contestApi.getContestLeaderboard(Number(id)).then(setLeaderboard);
+                              fetchContest(false);
                             }
                           }}
                         />
@@ -633,8 +644,9 @@ const ContestDetailPage = () => {
                       showDays={statusInfo.status === 'UPCOMING'} // Chỉ hiển thị ngày khi chờ bắt đầu
                       onComplete={() => {
                         // Tự động refresh khi countdown kết thúc (contest bắt đầu hoặc kết thúc)
+                        // Không hiển thị loading để tránh nháy trang
                         if (id) {
-                          fetchContest();
+                          fetchContest(false);
                         }
                       }}
                     />
@@ -772,6 +784,17 @@ const ContestDetailPage = () => {
           isRetake={contest.isRegistered && isPracticeTimeExpired()}
         />
       )}
+
+      <ConfirmModal
+        isOpen={showFinishConfirmModal}
+        onClose={() => setShowFinishConfirmModal(false)}
+        onConfirm={handleFinishContest}
+        title="Finish Contest"
+        message="Are you sure you want to finish this contest? After finishing, you will not be able to submit anymore."
+        confirmText="Finish"
+        cancelText="Cancel"
+        confirmButtonColor="red"
+      />
     </div>
   );
 };

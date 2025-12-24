@@ -14,8 +14,7 @@ export interface ProblemResponse {
   languages: LanguageResponse[];
   isBookmarked?: boolean;
   status?: ProblemStatus;
-  isPublic?: boolean; // true for public problems, false for premium/private
-  isContest?: boolean; // true for contest-only problems
+  isPublic?: boolean; // true = public (hiện trong problem list), false = contest-only (ẩn khỏi problem list)
 }
 
 export interface ProblemDetailResponse {

@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '@/utils/constants';
 import { notificationApi, type NotificationResponse } from '@/apis/notification.api';
 import { websocketService } from '@/services/websocket.service';
-import { FiBell, FiCheck, FiMoreHorizontal } from 'react-icons/fi';
+import { FiBell, FiCheck, FiMoreHorizontal, FiCheckCircle } from 'react-icons/fi';
 import { useAuth } from '@/hooks/useAuth';
 import { formatDistanceToNow } from 'date-fns';
 import { enUS } from 'date-fns/locale';
@@ -19,6 +19,7 @@ const NotificationDropdown = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState<NotificationResponse[]>([]);
   const [loading, setLoading] = useState(false);
+  const [markingAll, setMarkingAll] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const isActive = location.pathname === ROUTES.NOTIFICATIONS || location.pathname.startsWith(ROUTES.NOTIFICATIONS + '/');
@@ -148,6 +149,26 @@ const NotificationDropdown = () => {
     setIsOpen(false);
   };
 
+  const handleMarkAllAsRead = async () => {
+    try {
+      setMarkingAll(true);
+      await notificationApi.markAllAsRead();
+      toast.success('All notifications marked as read');
+      // Update all notifications to read
+      setNotifications((prev) =>
+        prev.map((n) => ({ ...n, isRead: true, readAt: new Date().toISOString() }))
+      );
+      setUnreadCount(0);
+      // Refresh notifications
+      await fetchNotifications();
+    } catch (error) {
+      console.error('Error marking all as read:', error);
+      toast.error('Unable to mark all as read');
+    } finally {
+      setMarkingAll(false);
+    }
+  };
+
   const formatTime = (dateString: string) => {
     try {
       return formatDistanceToNow(new Date(dateString), { addSuffix: true, locale: enUS });
@@ -198,15 +219,27 @@ const NotificationDropdown = () => {
 
       {isOpen && (
         <div className="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-xl z-50 border border-slate-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="p-4 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
-            <h3 className="font-bold text-slate-900">Notifications</h3>
-            <Link
-              to={ROUTES.NOTIFICATIONS}
-              className="text-xs font-bold text-blue-600 hover:text-blue-700 uppercase tracking-wider"
-              onClick={() => setIsOpen(false)}
-            >
-              View all
-            </Link>
+          <div className="p-4 border-b border-slate-50 bg-slate-50/50">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="font-bold text-slate-900">Notifications</h3>
+              <Link
+                to={ROUTES.NOTIFICATIONS}
+                className="text-xs font-bold text-blue-600 hover:text-blue-700 uppercase tracking-wider"
+                onClick={() => setIsOpen(false)}
+              >
+                View all
+              </Link>
+            </div>
+            {unreadCount > 0 && (
+              <button
+                onClick={handleMarkAllAsRead}
+                disabled={markingAll}
+                className="flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <FiCheckCircle className="w-3.5 h-3.5" />
+                {markingAll ? 'Marking...' : 'Mark all as read'}
+              </button>
+            )}
           </div>
           <div className="divide-y divide-slate-50 max-h-[400px] overflow-y-auto custom-scrollbar">
             {loading ? (

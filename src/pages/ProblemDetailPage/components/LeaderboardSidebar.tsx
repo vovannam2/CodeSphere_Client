@@ -39,7 +39,7 @@ const LeaderboardSidebar = ({ isOpen, onClose, problemId, userId }: LeaderboardS
 
           {/* Leaderboard Table */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-700 mb-2">Bảng xếp hạng</h3>
+            <h3 className="text-sm font-semibold text-gray-700 mb-2">Leaderboard</h3>
             <LeaderboardTable 
               problemId={problemId} 
               highlightUserId={userId}

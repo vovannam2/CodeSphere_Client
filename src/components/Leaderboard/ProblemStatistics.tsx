@@ -27,7 +27,7 @@ const ProblemStatistics = ({ problemId }: ProblemStatisticsProps) => {
         setLeaderboard(leaderboardData);
       } catch (error: any) {
         console.error('Error fetching statistics:', error);
-        toast.error('Không thể tải thống kê');
+        toast.error('Unable to load statistics');
       } finally {
         setIsLoading(false);
       }
@@ -108,7 +108,7 @@ const ProblemStatistics = ({ problemId }: ProblemStatisticsProps) => {
   if (!stats) {
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-8 text-center text-gray-500">
-        Không có dữ liệu thống kê
+        No statistics data
       </div>
     );
   }
@@ -120,7 +120,7 @@ const ProblemStatistics = ({ problemId }: ProblemStatisticsProps) => {
         {/* Tổng số người đã nộp bài */}
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-gray-600">Tổng người nộp bài</h3>
+            <h3 className="text-sm font-medium text-gray-600">Total Attempts</h3>
             <FiUsers className="w-5 h-5 text-blue-500" />
           </div>
           <p className="text-2xl font-bold text-gray-900">{stats.totalUsersAttempted}</p>
@@ -129,7 +129,7 @@ const ProblemStatistics = ({ problemId }: ProblemStatisticsProps) => {
         {/* Tổng số người đã giải đúng */}
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-gray-600">Người giải đúng</h3>
+            <h3 className="text-sm font-medium text-gray-600">Solved</h3>
             <FiCheckCircle className="w-5 h-5 text-green-500" />
           </div>
           <p className="text-2xl font-bold text-gray-900">{stats.totalUsersSolved}</p>
@@ -138,7 +138,7 @@ const ProblemStatistics = ({ problemId }: ProblemStatisticsProps) => {
         {/* Tỷ lệ giải đúng */}
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-gray-600">Tỷ lệ giải đúng</h3>
+            <h3 className="text-sm font-medium text-gray-600">Solve Rate</h3>
             <FiTrendingUp className="w-5 h-5 text-yellow-500" />
           </div>
           <p className="text-2xl font-bold text-gray-900">{stats.solveRate.toFixed(1)}%</p>
@@ -147,7 +147,7 @@ const ProblemStatistics = ({ problemId }: ProblemStatisticsProps) => {
         {/* Tổng số submissions */}
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-gray-600">Tổng submissions</h3>
+            <h3 className="text-sm font-medium text-gray-600">Total Submissions</h3>
             <FiBarChart2 className="w-5 h-5 text-purple-500" />
           </div>
           <p className="text-2xl font-bold text-gray-900">{stats.totalSubmissions}</p>
@@ -158,7 +158,7 @@ const ProblemStatistics = ({ problemId }: ProblemStatisticsProps) => {
       <div className="bg-white rounded-lg border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
           <FiBarChart2 className="w-5 h-5" />
-          Phân bố điểm
+          Score Distribution
         </h3>
         <div className="space-y-3">
           {Object.entries(scoreDistribution).map(([range, count]) => {
@@ -166,8 +166,8 @@ const ProblemStatistics = ({ problemId }: ProblemStatisticsProps) => {
             return (
               <div key={range}>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700">{range} điểm</span>
-                  <span className="text-sm text-gray-600">{count} người</span>
+                  <span className="text-sm font-medium text-gray-700">{range} points</span>
+                  <span className="text-sm text-gray-600">{count} users</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3">
                   <div
@@ -187,13 +187,13 @@ const ProblemStatistics = ({ problemId }: ProblemStatisticsProps) => {
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center gap-3 mb-2">
             <FiClock className="w-5 h-5 text-blue-500" />
-            <h3 className="text-lg font-semibold text-gray-900">Runtime trung bình</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Average Runtime</h3>
           </div>
           <p className="text-3xl font-bold text-gray-900">
             {avgRuntime > 0 ? `${Math.round(avgRuntime)} ms` : 'N/A'}
           </p>
           <p className="text-sm text-gray-500 mt-1">
-            Tính từ {leaderboard.length} người trong leaderboard
+            Calculated from {leaderboard.length} users in leaderboard
           </p>
         </div>
 
@@ -201,7 +201,7 @@ const ProblemStatistics = ({ problemId }: ProblemStatisticsProps) => {
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center gap-3 mb-2">
             <FiDatabase className="w-5 h-5 text-green-500" />
-            <h3 className="text-lg font-semibold text-gray-900">Memory trung bình</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Average Memory</h3>
           </div>
           <p className="text-3xl font-bold text-gray-900">
             {avgMemory > 0
@@ -211,7 +211,7 @@ const ProblemStatistics = ({ problemId }: ProblemStatisticsProps) => {
               : 'N/A'}
           </p>
           <p className="text-sm text-gray-500 mt-1">
-            Tính từ {leaderboard.length} người trong leaderboard
+            Calculated from {leaderboard.length} users in leaderboard
           </p>
         </div>
       </div>

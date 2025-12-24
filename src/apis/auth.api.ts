@@ -1,10 +1,32 @@
 import apiClient from './apiClient';
 import type { DataResponse } from '@/types/common.types';
-import type { LoginRequest, RegisterRequest, AuthResponse, User, UserProfileResponse, UpdateProfileRequest } from '@/types/auth.types';
+import type {
+  LoginRequest,
+  RegisterRequest,
+  AuthResponse,
+  User,
+  UserProfileResponse,
+  UpdateProfileRequest,
+  RegisterInitRequest,
+  RegisterVerifyRequest,
+  ForgotPasswordInitRequest,
+  ForgotPasswordVerifyRequest,
+  ChangePasswordRequest,
+} from '@/types/auth.types';
 
 export const authApi = {
   register: async (data: RegisterRequest): Promise<AuthResponse> => {
     const response = await apiClient.post<DataResponse<AuthResponse>>('/auth/register', data);
+    return response.data.data!;
+  },
+
+  registerInit: async (data: RegisterInitRequest): Promise<string> => {
+    const response = await apiClient.post<DataResponse<string>>('/auth/register/init', data);
+    return response.data.data!;
+  },
+
+  registerVerify: async (data: RegisterVerifyRequest): Promise<AuthResponse> => {
+    const response = await apiClient.post<DataResponse<AuthResponse>>('/auth/register/verify', data);
     return response.data.data!;
   },
 
@@ -48,6 +70,21 @@ export const authApi = {
         'Content-Type': 'multipart/form-data',
       },
     });
+    return response.data.data!;
+  },
+
+  forgotPasswordInit: async (data: ForgotPasswordInitRequest): Promise<string> => {
+    const response = await apiClient.post<DataResponse<string>>('/auth/forgot-password/init', data);
+    return response.data.data!;
+  },
+
+  forgotPasswordVerify: async (data: ForgotPasswordVerifyRequest): Promise<string> => {
+    const response = await apiClient.post<DataResponse<string>>('/auth/forgot-password/verify', data);
+    return response.data.data!;
+  },
+
+  changePassword: async (data: ChangePasswordRequest): Promise<string> => {
+    const response = await apiClient.post<DataResponse<string>>('/auth/change-password', data);
     return response.data.data!;
   },
 };

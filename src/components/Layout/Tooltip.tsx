@@ -29,17 +29,17 @@ const Tooltip = ({ children, text, position = 'bottom' }: TooltipProps) => {
   };
 
   return (
-    <div className="relative group/tooltip">
+    <span className="relative group/tooltip inline-block">
       {children}
-      <div
-        className={`absolute ${positionClasses[position]} z-50 px-2.5 py-1.5 bg-gray-900 text-white text-xs font-medium rounded-md whitespace-nowrap opacity-0 group-hover/tooltip:opacity-100 transition-opacity duration-200 pointer-events-none shadow-lg`}
+      <span
+        className={`absolute ${positionClasses[position]} z-[9999] px-2.5 py-1.5 bg-gray-900 text-white text-xs font-medium rounded-md whitespace-nowrap opacity-0 group-hover/tooltip:opacity-100 transition-opacity duration-200 pointer-events-none shadow-lg`}
       >
         {text}
-        <div
+        <span
           className={`absolute ${arrowClasses[position]} w-0 h-0 border-4 ${arrowBorders[position]}`}
         />
-      </div>
-    </div>
+      </span>
+    </span>
   );
 };
 

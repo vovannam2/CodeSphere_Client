@@ -17,6 +17,9 @@ export interface DashboardStatsResponse {
   totalContests: number;
   totalSubmissions: number;
   activeUsers: number;
+  activeNow: number;
+  blockedUsers: number;
+  administrators: number;
   newUsersThisMonth: number;
   submissionsToday: number;
 }

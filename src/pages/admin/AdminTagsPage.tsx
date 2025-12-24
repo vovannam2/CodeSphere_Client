@@ -6,6 +6,7 @@ import { adminApi } from '@/apis/admin.api';
 import { tagApi } from '@/apis/tag.api';
 import type { TagResponse } from '@/types/common.types';
 import { FiEdit2, FiTrash2 } from 'react-icons/fi';
+import ConfirmModal from '@/components/Modal/ConfirmModal';
 
 const AdminTagsPage = () => {
   const [tags, setTags] = useState<TagResponse[]>([]);
@@ -13,6 +14,10 @@ const AdminTagsPage = () => {
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [saving, setSaving] = useState(false);
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; tag: TagResponse | null }>({
+    isOpen: false,
+    tag: null
+  });
 
   const fetchTags = async () => {
     setLoading(true);
@@ -66,16 +71,23 @@ const AdminTagsPage = () => {
     }
   };
 
-  const handleDelete = async (tag: TagResponse) => {
-    if (!confirm(`Delete tag "${tag.name}"?`)) return;
+  const handleDeleteClick = (tag: TagResponse) => {
+    setDeleteModal({ isOpen: true, tag });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteModal.tag) return;
+    
     try {
-      await adminApi.deleteTag(tag.id);
+      await adminApi.deleteTag(deleteModal.tag.id);
       toast.success('Deleted successfully');
-      setTags((s) => s.filter(t => t.id !== tag.id));
+      setTags((s) => s.filter(t => t.id !== deleteModal.tag!.id));
+      setDeleteModal({ isOpen: false, tag: null });
     } catch (e: any) {
       console.error(e);
       toast.error(e?.response?.data?.message || 'Delete failed');
       await fetchTags();
+      setDeleteModal({ isOpen: false, tag: null });
     }
   };
 
@@ -151,7 +163,7 @@ const AdminTagsPage = () => {
                               <FiEdit2 size={18} />
                             </button>
                             <button
-                              onClick={() => handleDelete(tag)}
+                              onClick={() => handleDeleteClick(tag)}
                               className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             >
                               <FiTrash2 size={18} />
@@ -167,6 +179,19 @@ const AdminTagsPage = () => {
           </div>
         </div>
       </Container>
+
+      {/* Delete Confirmation Modal */}
+      {deleteModal.isOpen && deleteModal.tag && (
+        <ConfirmModal
+          isOpen={deleteModal.isOpen}
+          onClose={() => setDeleteModal({ isOpen: false, tag: null })}
+          onConfirm={handleDeleteConfirm}
+          title="Delete Tag"
+          message={`Are you sure you want to delete "${deleteModal.tag.name}"? This action is permanent and cannot be undone.`}
+          confirmButtonText="Delete"
+          confirmButtonColor="red"
+        />
+      )}
     </div>
   );
 };

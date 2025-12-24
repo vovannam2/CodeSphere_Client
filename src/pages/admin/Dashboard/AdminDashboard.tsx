@@ -105,10 +105,10 @@ const AdminDashboard = () => {
 
       {/* Main Stats */}
       <div className="grid grid-cols-1 tablet:grid-cols-2 small_desktop:grid-cols-4 desktop:grid-cols-4 gap-6">
-        <AdminStatCard title="Total Users" value={stats?.totalUsers ?? 0} icon={<FiUsers size={20} />} color="blue" trend={{ value: 8, isUp: true }} />
-        <AdminStatCard title="Total Problems" value={stats?.totalProblems ?? 0} icon={<FiFileText size={20} />} color="indigo" trend={{ value: 3, isUp: true }} />
-        <AdminStatCard title="Active Contests" value={stats?.totalContests ?? 0} icon={<FiAward size={20} />} color="purple" />
-        <AdminStatCard title="Total Submissions" value={stats?.totalSubmissions ?? 0} icon={<FiActivity size={20} />} color="green" trend={{ value: 15, isUp: true }} />
+        <AdminStatCard title="Total Users" value={stats?.totalUsers ?? 0} icon={<FiUsers size={20} />} color="blue" />
+        <AdminStatCard title="Active Now" value={stats?.activeNow ?? 0} icon={<FiActivity size={20} />} color="green" />
+        <AdminStatCard title="Blocked" value={stats?.blockedUsers ?? 0} icon={<FiUsers size={20} />} color="red" />
+        <AdminStatCard title="Administrators" value={stats?.administrators ?? 0} icon={<FiUsers size={20} />} color="purple" />
       </div>
 
       <div className="grid grid-cols-1 tablet:grid-cols-1 small_desktop:grid-cols-3 desktop:grid-cols-3 gap-8">

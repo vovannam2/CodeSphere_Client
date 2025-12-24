@@ -323,14 +323,14 @@ const CodeEditorPanel = ({
                         disabled={isReviewing || isRefactoring}
                         className="px-3 py-1.5 text-xs bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {isReviewing ? 'Đang đánh giá...' : 'Review Code'}
+                        {isReviewing ? 'Reviewing...' : 'Review Code'}
                       </button>
                       <button
                         onClick={onRefactor}
                         disabled={isRefactoring || isReviewing}
                         className="px-3 py-1.5 text-xs bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {isRefactoring ? 'Đang refactor...' : 'Refactor'}
+                        {isRefactoring ? 'Refactoring...' : 'Refactor'}
                       </button>
                     </>
                   )}

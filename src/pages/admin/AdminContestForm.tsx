@@ -22,6 +22,7 @@ const AdminContestForm = () => {
   const [problems, setProblems] = useState<ProblemResponse[]>([]);
   const [selectedProblems, setSelectedProblems] = useState<Array<{ problemId: number; order: string; points: number }>>([]);
   const [problemSearch, setProblemSearch] = useState('');
+  const [problemFilter, setProblemFilter] = useState<'ALL' | 'CONTEST_ONLY' | 'PUBLIC'>('ALL');
   const [showProblemSelector, setShowProblemSelector] = useState(false);
   const [showCreateProblem, setShowCreateProblem] = useState(false);
   const [creatingProblem, setCreatingProblem] = useState(false);
@@ -78,8 +79,8 @@ const AdminContestForm = () => {
       try {
         const data = await adminApi.getProblems(0, 1000);
         const problemsList = (data as any)?.content || (Array.isArray(data) ? data : []);
-        const contestProblems = problemsList.filter((p: any) => p.isContest === true);
-        setProblems(contestProblems);
+        // Fetch all problems, not just contest problems
+        setProblems(problemsList);
       } catch (e: any) {
         console.error(e);
         toast.error('Failed to fetch problems list');
@@ -131,6 +132,33 @@ const AdminContestForm = () => {
           });
 
           if (contest.problems && contest.problems.length > 0) {
+            // Fetch full problem details for problems in the contest
+            const problemDetailsPromises = contest.problems.map(async (p: any) => {
+              try {
+                const problemDetail = await adminApi.getProblem(p.problemId);
+                return problemDetail;
+              } catch (e: any) {
+                // If admin API fails, try common API
+                try {
+                  const { problemApi } = await import('@/apis/problem.api');
+                  return await problemApi.getProblemDetail(p.problemId);
+                } catch (err) {
+                  console.error(`Failed to fetch problem ${p.problemId}:`, err);
+                  return null;
+                }
+              }
+            });
+
+            const problemDetails = await Promise.all(problemDetailsPromises);
+            const validProblems = problemDetails.filter(p => p !== null);
+            
+            // Add problems to the problems list if they're not already there
+            setProblems((prev) => {
+              const existingIds = new Set(prev.map(p => p.id));
+              const newProblems = validProblems.filter(p => !existingIds.has(p.id));
+              return [...prev, ...newProblems];
+            });
+
             setSelectedProblems(
               contest.problems.map((p) => ({
                 problemId: p.problemId,
@@ -270,8 +298,7 @@ const AdminContestForm = () => {
         ...newProblemForm,
         code: finalCode,
         content: finalContent,
-        isContest: true,
-        isPublic: newProblemForm.isPublic ?? false,
+        isPublic: false, // Tự động set false khi tạo trong contest (contest-only)
       });
 
       setProblems((prev) => [...prev, createdProblem]);
@@ -315,11 +342,30 @@ const AdminContestForm = () => {
   };
 
   const filteredProblems = problems.filter(
-    (p) =>
-      !selectedProblems.some((sp) => sp.problemId === p.id) &&
-      (problemSearch.trim() === '' ||
-        p.title?.toLowerCase().includes(problemSearch.toLowerCase()) ||
-        p.code?.toLowerCase().includes(problemSearch.toLowerCase()))
+    (p) => {
+      // Skip if already selected
+      if (selectedProblems.some((sp) => sp.problemId === p.id)) {
+        return false;
+      }
+      
+      // Filter theo loại
+      if (problemFilter === 'CONTEST_ONLY') {
+        if (p.isPublic) return false; // Chỉ hiện non-public (contest-only)
+      } else if (problemFilter === 'PUBLIC') {
+        if (!p.isPublic) return false; // Chỉ hiện public
+      }
+      // 'ALL' thì không filter
+      
+      // Search filter
+      if (problemSearch.trim() !== '') {
+        const searchLower = problemSearch.toLowerCase();
+        const titleMatch = p.title?.toLowerCase().includes(searchLower) ?? false;
+        const codeMatch = p.code?.toLowerCase().includes(searchLower) ?? false;
+        return titleMatch || codeMatch;
+      }
+      
+      return true;
+    }
   );
 
   const filteredCategories = categories.filter(c =>
@@ -972,33 +1018,79 @@ const AdminContestForm = () => {
 
       {/* Problem Selector Modal */}
       {showProblemSelector && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-          <div className="bg-white rounded-[2rem] shadow-2xl max-w-2xl w-full max-h-[80vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="p-8 border-b border-slate-100 flex items-center justify-between">
-              <div>
-                <h3 className="text-xl font-black text-slate-800">Select Problem</h3>
-                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Add existing challenge</p>
-              </div>
-              <button onClick={() => { setShowProblemSelector(false); setProblemSearch(''); }} className="w-12 h-12 flex items-center justify-center hover:bg-slate-100 rounded-2xl transition-all text-slate-400">
-                <FiX size={24} />
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full max-h-[80vh] flex flex-col overflow-hidden">
+            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-800">Select Problem</h3>
+              <button 
+                onClick={() => { 
+                  setShowProblemSelector(false); 
+                  setProblemSearch(''); 
+                  setProblemFilter('ALL'); 
+                }} 
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-400"
+              >
+                <FiX size={20} />
               </button>
             </div>
-            <div className="p-8 space-y-6 flex-1 overflow-hidden flex flex-col">
-              <input
-                type="text"
-                placeholder="Search by title or code..."
-                value={problemSearch}
-                onChange={(e) => setProblemSearch(e.target.value)}
-                className="w-full p-4 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-500 bg-slate-50 font-bold"
-              />
-              <div className="flex-1 overflow-y-auto custom-scrollbar border-2 border-slate-100 rounded-2xl divide-y divide-slate-100">
+            <div className="p-6 space-y-4 flex-1 overflow-hidden flex flex-col">
+              {/* Filter và Search */}
+              <div className="flex gap-3">
+                <select
+                  value={problemFilter}
+                  onChange={(e) => setProblemFilter(e.target.value as 'ALL' | 'CONTEST_ONLY' | 'PUBLIC')}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                >
+                  <option value="ALL">All Problems</option>
+                  <option value="CONTEST_ONLY">Contest Only</option>
+                  <option value="PUBLIC">Public Problems</option>
+                </select>
+                <input
+                  type="text"
+                  placeholder="Search by title or code..."
+                  value={problemSearch}
+                  onChange={(e) => setProblemSearch(e.target.value)}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div className="flex-1 overflow-y-auto border border-gray-200 rounded-lg divide-y divide-gray-200">
                 {filteredProblems.length === 0 ? (
-                  <div className="p-12 text-center font-bold text-slate-300 uppercase tracking-widest">No problems found</div>
+                  <div className="p-8 text-center text-gray-400">
+                    {problemFilter === 'CONTEST_ONLY' 
+                      ? 'No contest-only problems found' 
+                      : problemFilter === 'PUBLIC'
+                      ? 'No public problems found'
+                      : 'No problems found'}
+                  </div>
                 ) : (
                   filteredProblems.map((problem) => (
-                    <button key={problem.id} type="button" onClick={() => handleAddProblem(problem)} className="w-full text-left p-5 hover:bg-blue-50 transition-all group">
-                      <div className="font-bold text-slate-800 group-hover:text-blue-600">{problem.title}</div>
-                      <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">{problem.code} • {problem.level}</div>
+                    <button 
+                      key={problem.id} 
+                      type="button" 
+                      onClick={() => handleAddProblem(problem)} 
+                      className="w-full text-left p-4 hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900">
+                            {problem.title || `Problem ${problem.id}`}
+                          </div>
+                          <div className="text-sm text-gray-500 mt-1">
+                            {problem.code || `CODE_${problem.id}`} • {problem.level || 'N/A'}
+                          </div>
+                        </div>
+                        <div className="ml-4">
+                          {problem.isPublic ? (
+                            <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded">
+                              Public
+                            </span>
+                          ) : (
+                            <span className="px-2 py-1 text-xs font-medium bg-orange-100 text-orange-700 rounded">
+                              Contest Only
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </button>
                   ))
                 )}

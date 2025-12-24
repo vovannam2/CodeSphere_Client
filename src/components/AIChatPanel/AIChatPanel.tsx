@@ -33,14 +33,14 @@ const AIChatPanel = ({
   const [problemMessages, setProblemMessages] = useState<Message[]>([
     {
       id: '1',
-      content: "Xin chào! Tôi là AI Assistant. Tôi có thể giúp bạn với bài toán này hoặc các câu hỏi về lập trình. Bạn muốn hỏi gì?",
+      content: "Hello! I'm an AI Assistant. I can help you with this problem or answer questions about programming. What would you like to ask?",
       isUser: false
     }
   ]);
   const [generalMessages, setGeneralMessages] = useState<Message[]>([
     {
       id: '1',
-      content: "Xin chào! Tôi là AI Assistant. Tôi có thể giúp bạn với các câu hỏi về lập trình, algorithms, data structures và best practices. Bạn muốn hỏi gì?",
+      content: "Hello! I'm an AI Assistant. I can help you with questions about programming, algorithms, data structures, and best practices. What would you like to ask?",
       isUser: false
     }
   ]);
@@ -157,7 +157,7 @@ const AIChatPanel = ({
             setProblemMessages(prev =>
               prev.map(msg =>
                 msg.id === aiMessageId
-                  ? { ...msg, content: "Xin lỗi, đã có lỗi xảy ra: " + error, isStreaming: false }
+                  ? { ...msg, content: "Sorry, an error occurred: " + error, isStreaming: false }
                   : msg
               )
             );
@@ -165,7 +165,7 @@ const AIChatPanel = ({
             setGeneralMessages(prev =>
               prev.map(msg =>
                 msg.id === aiMessageId
-                  ? { ...msg, content: "Xin lỗi, đã có lỗi xảy ra: " + error, isStreaming: false }
+                  ? { ...msg, content: "Sorry, an error occurred: " + error, isStreaming: false }
                   : msg
               )
             );
@@ -198,7 +198,7 @@ const AIChatPanel = ({
         setProblemMessages(prev =>
           prev.map(msg =>
             msg.id === aiMessageId
-              ? { ...msg, content: "Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại.", isStreaming: false }
+              ? { ...msg, content: "Sorry, an error occurred. Please try again.", isStreaming: false }
               : msg
           )
         );
@@ -206,7 +206,7 @@ const AIChatPanel = ({
         setGeneralMessages(prev =>
           prev.map(msg =>
             msg.id === aiMessageId
-              ? { ...msg, content: "Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại.", isStreaming: false }
+              ? { ...msg, content: "Sorry, an error occurred. Please try again.", isStreaming: false }
               : msg
           )
         );
@@ -356,7 +356,7 @@ const AIChatPanel = ({
                 }, 0);
               }
             }}
-            placeholder="Nhập câu hỏi của bạn..."
+            placeholder="Enter your question..."
             className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
             rows={2}
             disabled={isLoading}
@@ -370,7 +370,7 @@ const AIChatPanel = ({
           </button>
         </div>
         <p className="text-xs text-gray-500 mt-1">
-          Shift+Enter để xuống dòng
+          Shift+Enter for new line
         </p>
       </div>
     </div>

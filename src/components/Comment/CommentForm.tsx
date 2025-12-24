@@ -20,7 +20,7 @@ const CommentForm = ({
   parentId = null, 
   onSubmit, 
   onCancel,
-  placeholder = 'Viết bình luận...',
+  placeholder = 'Write a comment...',
   isSubmitting = false
 }: CommentFormProps) => {
   const { user } = useAuth();
@@ -44,7 +44,7 @@ const CommentForm = ({
   if (!user) {
     return (
       <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 text-center text-gray-500">
-        <p>Vui lòng đăng nhập để bình luận</p>
+        <p>Please log in to comment</p>
       </div>
     );
   }
@@ -70,7 +70,7 @@ const CommentForm = ({
               onClick={onCancel}
               disabled={isSubmitting}
             >
-              Hủy
+              Cancel
             </Button>
           )}
           <Button
@@ -81,7 +81,7 @@ const CommentForm = ({
             className="flex items-center gap-2"
           >
             <FiSend className="w-4 h-4" />
-            {isSubmitting ? 'Đang gửi...' : 'Gửi'}
+            {isSubmitting ? 'Sending...' : 'Send'}
           </Button>
         </div>
       </div>

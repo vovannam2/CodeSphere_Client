@@ -4,6 +4,7 @@ import Container from '@/components/Layout/Container';
 import Loading from '@/components/Loading';
 import toast from 'react-hot-toast';
 import { FiEdit2, FiTrash2 } from 'react-icons/fi';
+import ConfirmModal from '@/components/Modal/ConfirmModal';
 
 const AdminLanguagesPage = () => {
   const [languages, setLanguages] = useState<any[]>([]);
@@ -12,6 +13,10 @@ const AdminLanguagesPage = () => {
   const [code, setCode] = useState('');
   const [version, setVersion] = useState('');
   const [saving, setSaving] = useState(false);
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; language: any | null }>({
+    isOpen: false,
+    language: null
+  });
 
   useEffect(() => {
     (async () => {
@@ -65,15 +70,22 @@ const AdminLanguagesPage = () => {
     }
   };
 
-  const handleDelete = async (lang: any) => {
-    if (!confirm(`Delete language "${lang.name}"?`)) return;
+  const handleDeleteClick = (lang: any) => {
+    setDeleteModal({ isOpen: true, language: lang });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteModal.language) return;
+    
     try {
-      await adminApi.deleteLanguage(lang.id);
-      setLanguages((s) => s.filter(l => l.id !== lang.id));
+      await adminApi.deleteLanguage(deleteModal.language.id);
+      setLanguages((s) => s.filter(l => l.id !== deleteModal.language!.id));
       toast.success('Deleted successfully');
+      setDeleteModal({ isOpen: false, language: null });
     } catch (e: any) {
       console.error(e);
       toast.error(e?.response?.data?.message || 'Delete failed');
+      setDeleteModal({ isOpen: false, language: null });
     }
   };
 
@@ -160,7 +172,7 @@ const AdminLanguagesPage = () => {
                               <FiEdit2 size={18} />
                             </button>
                             <button
-                              onClick={() => handleDelete(l)}
+                              onClick={() => handleDeleteClick(l)}
                               className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             >
                               <FiTrash2 size={18} />
@@ -176,6 +188,19 @@ const AdminLanguagesPage = () => {
           </div>
         </div>
       </Container>
+
+      {/* Delete Confirmation Modal */}
+      {deleteModal.isOpen && deleteModal.language && (
+        <ConfirmModal
+          isOpen={deleteModal.isOpen}
+          onClose={() => setDeleteModal({ isOpen: false, language: null })}
+          onConfirm={handleDeleteConfirm}
+          title="Delete Language"
+          message={`Are you sure you want to delete "${deleteModal.language.name}"? This action is permanent and cannot be undone.`}
+          confirmButtonText="Delete"
+          confirmButtonColor="red"
+        />
+      )}
     </div>
   );
 };

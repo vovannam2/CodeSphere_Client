@@ -3,22 +3,38 @@ import { Link, useNavigate } from 'react-router-dom';
 import Loading from '@/components/Loading';
 import { adminApi } from '@/apis/admin.api';
 import toast from 'react-hot-toast';
-import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiFilter, FiFileText, FiActivity, FiCpu, FiClock, FiX, FiDatabase } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiFileText, FiActivity, FiCpu, FiClock, FiDatabase } from 'react-icons/fi';
 import AdminStatCard from '@/components/Admin/AdminStatCard';
 import AdminPageHeader from '@/components/Admin/AdminPageHeader';
 import Tooltip from '@/components/Layout/Tooltip';
+import ConfirmModal from '@/components/Modal/ConfirmModal';
 
 const AdminProblemsPage = () => {
   const [loading, setLoading] = useState(true);
   const [problems, setProblems] = useState<any[]>([]);
   const [page, setPage] = useState(0);
   const [size] = useState(20);
+  const [search, setSearch] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [visibilityFilter, setVisibilityFilter] = useState<string>('all'); // 'all', 'public', 'hidden'
   const navigate = useNavigate();
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; problemId: number | null; problemTitle: string }>({
+    isOpen: false,
+    problemId: null,
+    problemTitle: ''
+  });
 
   const fetchList = async () => {
     setLoading(true);
     try {
-      const data = await adminApi.getProblems(page, size);
+      const params: Record<string, any> = {};
+      if (search.trim()) {
+        params.search = search.trim();
+      }
+      if (visibilityFilter !== 'all') {
+        params.isPublic = visibilityFilter === 'public';
+      }
+      const data = await adminApi.getProblems(page, size, params);
       setProblems(data?.content ?? data);
     } catch (e: any) {
       console.error(e);
@@ -29,17 +45,36 @@ const AdminProblemsPage = () => {
     }
   };
 
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearch(searchInput);
+      setPage(0); // Reset to first page when searching
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
   useEffect(() => {
     fetchList();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
+  }, [page, search, visibilityFilter]);
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this problem? This action is permanent.')) return;
+  const handleDeleteClick = (id: number, title: string) => {
+    setDeleteModal({
+      isOpen: true,
+      problemId: id,
+      problemTitle: title
+    });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteModal.problemId) return;
+    
     try {
-      await adminApi.deleteProblem(id);
+      await adminApi.deleteProblem(deleteModal.problemId);
       toast.success('Problem deleted successfully');
-      setProblems((s) => s.filter(p => p.id !== id));
+      setProblems((s) => s.filter(p => p.id !== deleteModal.problemId));
+      setDeleteModal({ isOpen: false, problemId: null, problemTitle: '' });
     } catch (e: any) {
       console.error(e);
       toast.error(e?.response?.data?.message || 'Delete failed');
@@ -85,17 +120,28 @@ const AdminProblemsPage = () => {
         {/* Table Toolbar */}
         <div className="p-4 border-b border-slate-50 bg-slate-50/30 flex flex-col tablet:flex-row gap-4 items-center justify-between">
           <div className="relative w-full max-w-md">
-            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
             <input
               type="text"
               placeholder="Search by title or code..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
               className="w-full pl-10 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
             />
           </div>
           <div className="flex gap-2">
-            <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all text-sm font-medium">
-              <FiFilter /> Filter
-            </button>
+            <select
+              value={visibilityFilter}
+              onChange={(e) => {
+                setVisibilityFilter(e.target.value);
+                setPage(0); // Reset to first page when filtering
+              }}
+              className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-all text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer"
+            >
+              <option value="all">All Visibility</option>
+              <option value="public">Public</option>
+              <option value="hidden">Hidden</option>
+            </select>
           </div>
         </div>
 
@@ -105,17 +151,18 @@ const AdminProblemsPage = () => {
               <tr className="bg-slate-50/50 border-b border-slate-100">
                 <th className="p-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Problem</th>
                 <th className="p-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Level</th>
+                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Visibility</th>
                 <th className="p-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Categories</th>
                 <th className="p-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
               {problems.map((p:any) => (
-                <tr key={p.id} className="group hover:bg-slate-50/50 transition-colors">
+                <tr key={p.id}>
                   <td className="p-4">
                     <div className="flex flex-col">
                       <div className="flex items-center gap-2">
-                        <span className="text-[14px] font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{p.title}</span>
+                        <span className="text-[14px] font-bold text-slate-900">{p.title}</span>
                         <span className="text-[10px] font-bold px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded uppercase">{p.code}</span>
                       </div>
                       <div className="text-[12px] text-slate-500 mt-0.5 truncate max-w-md">
@@ -127,6 +174,17 @@ const AdminProblemsPage = () => {
                     <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getDifficultyColor(p.level)}`}>
                       {p.level}
                     </span>
+                  </td>
+                  <td className="p-4">
+                    {p.isPublic ? (
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border text-blue-600 bg-blue-50 border-blue-100">
+                        Public
+                      </span>
+                    ) : (
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border text-amber-600 bg-amber-50 border-amber-100">
+                        Hidden
+                      </span>
+                    )}
                   </td>
                   <td className="p-4">
                     <div className="flex flex-wrap gap-1">
@@ -142,7 +200,7 @@ const AdminProblemsPage = () => {
                       <Tooltip text="Manage Testcases" position="top">
                         <Link 
                           to={`/admin/testcases?problemId=${p.id}`} 
-                          className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                          className="inline-flex items-center justify-center p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors bg-transparent"
                         >
                           <FiDatabase size={18} />
                         </Link>
@@ -150,15 +208,15 @@ const AdminProblemsPage = () => {
                       <Tooltip text="Edit Problem" position="top">
                         <Link 
                           to={`/admin/problems/${p.id}/edit`} 
-                          className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-all"
+                          className="inline-flex items-center justify-center p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors bg-transparent"
                         >
                           <FiEdit2 size={18} />
                         </Link>
                       </Tooltip>
                       <Tooltip text="Delete Problem" position="top">
                         <button 
-                          onClick={() => handleDelete(p.id)} 
-                          className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
+                          onClick={() => handleDeleteClick(p.id, p.title)} 
+                          className="inline-flex items-center justify-center p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors bg-transparent border-0"
                         >
                           <FiTrash2 size={18} />
                         </button>
@@ -182,6 +240,18 @@ const AdminProblemsPage = () => {
           </button>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, problemId: null, problemTitle: '' })}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Problem"
+        message={`Are you sure you want to delete "${deleteModal.problemTitle}"? This action is permanent and cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        confirmButtonColor="red"
+      />
     </div>
   );
 };

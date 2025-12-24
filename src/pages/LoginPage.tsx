@@ -46,9 +46,9 @@ const LoginPage = () => {
                 CodeSphere
               </span>
             </Link>
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">Đăng nhập</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">Sign in</h2>
             <p className="text-sm text-gray-600">
-              Chào mừng bạn trở lại CodeSphere
+              Welcome back to CodeSphere
             </p>
           </div>
 

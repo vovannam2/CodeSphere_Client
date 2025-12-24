@@ -22,34 +22,62 @@ const ContestPage = () => {
   const [officialFilter, setOfficialFilter] = useState<'ALL' | 'UPCOMING' | 'ONGOING' | 'ENDED'>('ALL');
   const [search, setSearch] = useState('');
   const [privateCode, setPrivateCode] = useState('');
+  const [verifying, setVerifying] = useState(false);
 
   const fetchContests = async () => {
     setLoading(true);
     try {
-      // Fetch PRACTICE contests (both public and private)
-      const practiceData = await contestApi.getContests(
-        page, 
-        size * 2, // Fetch more to include private contests
-        undefined, // undefined = both public and private
-        undefined,
-        'PRACTICE'
-      );
+      let allContestsData: ContestResponse[] = [];
       
-      // Fetch OFFICIAL contests (both public and private)
-      const officialData = await contestApi.getContests(
-        page, 
-        size * 2, // Fetch more to include private contests
-        undefined, // undefined = both public and private
-        undefined,
-        'OFFICIAL'
-      );
-      
-      const allContestsData: ContestResponse[] = [];
-      if (practiceData && 'content' in practiceData) {
-        allContestsData.push(...(practiceData as PageResponse<ContestResponse>).content);
-      }
-      if (officialData && 'content' in officialData) {
-        allContestsData.push(...(officialData as PageResponse<ContestResponse>).content);
+      if (activeTab === 'PRIVATE') {
+        // Tab PRIVATE: chỉ fetch private contests (isPublic = false)
+        // Backend sẽ tự động filter chỉ trả về những contest user đã register
+        const practicePrivateData = await contestApi.getContests(
+          page, 
+          size * 2,
+          false, // isPublic = false (chỉ lấy private)
+          undefined,
+          'PRACTICE'
+        );
+        
+        const officialPrivateData = await contestApi.getContests(
+          page, 
+          size * 2,
+          false, // isPublic = false (chỉ lấy private)
+          undefined,
+          'OFFICIAL'
+        );
+        
+        if (practicePrivateData && 'content' in practicePrivateData) {
+          allContestsData.push(...(practicePrivateData as PageResponse<ContestResponse>).content);
+        }
+        if (officialPrivateData && 'content' in officialPrivateData) {
+          allContestsData.push(...(officialPrivateData as PageResponse<ContestResponse>).content);
+        }
+      } else {
+        // Tab PRACTICE/OFFICIAL: chỉ fetch public contests
+        const practiceData = await contestApi.getContests(
+          page, 
+          size * 2,
+          true, // isPublic = true (chỉ lấy public)
+          undefined,
+          'PRACTICE'
+        );
+        
+        const officialData = await contestApi.getContests(
+          page, 
+          size * 2,
+          true, // isPublic = true (chỉ lấy public)
+          undefined,
+          'OFFICIAL'
+        );
+        
+        if (practiceData && 'content' in practiceData) {
+          allContestsData.push(...(practiceData as PageResponse<ContestResponse>).content);
+        }
+        if (officialData && 'content' in officialData) {
+          allContestsData.push(...(officialData as PageResponse<ContestResponse>).content);
+        }
       }
       
       setAllContests(allContestsData);
@@ -95,17 +123,8 @@ const ContestPage = () => {
         filtered = filtered.filter(c => c.status === 'ENDED');
       }
     } else if (activeTab === 'PRIVATE') {
-      // Private contests: filter by code search
-      if (privateCode.trim()) {
-        // For now, we'll search by title/code. In the future, this could be an API call
-        filtered = filtered.filter(c => 
-          c.hasAccessCode && 
-          (c.title.toLowerCase().includes(privateCode.toLowerCase()) ||
-           String(c.id).includes(privateCode))
-        );
-      } else {
-        filtered = filtered.filter(c => c.hasAccessCode);
-      }
+      // Private contests: chỉ hiển thị contests đã register (isPublic = false và đã register)
+      filtered = filtered.filter(c => !c.isPublic && c.hasAccessCode && c.isRegistered);
     }
 
     // Apply search filter (only for PRACTICE and OFFICIAL tabs)
@@ -121,7 +140,7 @@ const ContestPage = () => {
   useEffect(() => {
     fetchContests();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
+  }, [page, activeTab]);
 
   useEffect(() => {
     if (allContests.length > 0) {
@@ -146,6 +165,26 @@ const ContestPage = () => {
         {statusInfo.text}
       </span>
     );
+  };
+
+  const handleVerifyCode = async () => {
+    if (!privateCode.trim()) {
+      toast.error('Please enter an access code');
+      return;
+    }
+    
+    setVerifying(true);
+    try {
+      const contest = await contestApi.verifyAccessCode(privateCode.trim());
+      toast.success(`Access granted! Contest "${contest.title}" is now available.`);
+      setPrivateCode('');
+      // Refresh contests to include the newly verified contest
+      await fetchContests();
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message || 'Invalid access code');
+    } finally {
+      setVerifying(false);
+    }
   };
 
   const getPracticeStatusBadge = (isRegistered: boolean) => {
@@ -243,10 +282,12 @@ const ContestPage = () => {
               Official
             </button>
             <button
-              onClick={() => {
+              onClick={async () => {
                 setActiveTab('PRIVATE');
                 setPrivateCode('');
                 setPage(0);
+                // Refresh contests when switching to PRIVATE tab to get only registered private contests
+                await fetchContests();
               }}
               className={`px-4 py-2 font-medium text-sm transition-colors ${
                 activeTab === 'PRIVATE'
@@ -261,15 +302,29 @@ const ContestPage = () => {
           {/* Filters */}
           <div className="flex gap-4">
             {activeTab === 'PRIVATE' ? (
-              <div className="relative flex-1 max-w-md">
-                <FiLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Enter private contest code..."
-                  value={privateCode}
-                  onChange={(e) => setPrivateCode(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
+              <div className="relative flex-1 max-w-md flex gap-2">
+                <div className="relative flex-1">
+                  <FiLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Enter private contest access code..."
+                    value={privateCode}
+                    onChange={(e) => setPrivateCode(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' && privateCode.trim()) {
+                        handleVerifyCode();
+                      }
+                    }}
+                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+                <button
+                  onClick={handleVerifyCode}
+                  disabled={!privateCode.trim() || verifying}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                >
+                  {verifying ? 'Verifying...' : 'Verify'}
+                </button>
               </div>
             ) : (
               <>
@@ -320,8 +375,16 @@ const ContestPage = () => {
         <div className="flex-1 overflow-y-auto -mx-4 px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-12">
           {contests.length === 0 ? (
-            <div className="col-span-full text-center py-12 text-gray-500">
-              No contests found
+            <div className="col-span-full text-center py-12">
+              {activeTab === 'PRIVATE' ? (
+                <div className="space-y-4">
+                  <FiLock className="mx-auto mb-3 text-4xl text-gray-400" />
+                  <p className="text-lg font-medium text-gray-700 mb-2">No private contests available</p>
+                  <p className="text-sm text-gray-500">Enter an access code above to unlock private contests</p>
+                </div>
+              ) : (
+                <div className="text-gray-500">No contests found</div>
+              )}
             </div>
           ) : (
             contests.map((contest) => {

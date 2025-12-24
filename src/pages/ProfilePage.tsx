@@ -1,7 +1,8 @@
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import Container from '@/components/Layout/Container';
-import { FiEdit2, FiMail, FiArrowLeft, FiPhone, FiCalendar, FiX, FiUser, FiBarChart2, FiUsers, FiUserPlus } from 'react-icons/fi';
+import { ROUTES } from '@/utils/constants';
+import { FiEdit2, FiMail, FiArrowLeft, FiPhone, FiCalendar, FiX, FiUser, FiBarChart2, FiUsers, FiUserPlus, FiLock } from 'react-icons/fi';
 import { useEffect, useState } from 'react';
 import { authApi } from '@/apis/auth.api';
 import { followApi } from '@/apis/follow.api';
@@ -320,6 +321,24 @@ const ProfilePage = () => {
                 <FiEdit2 className="w-5 h-5" />
               </button>
             )}
+          </div>
+
+          {/* Đổi mật khẩu */}
+          <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+            <div className="p-3 bg-orange-100 rounded-lg flex-shrink-0">
+              <FiLock className="w-5 h-5 text-orange-600" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <label className="text-sm font-medium text-gray-500 mb-1 block">Mật khẩu</label>
+              <p className="text-lg font-semibold text-gray-900">••••••••</p>
+              <p className="text-xs text-gray-400 mt-1">Bảo mật tài khoản của bạn</p>
+            </div>
+            <button
+              onClick={() => navigate(ROUTES.CHANGE_PASSWORD)}
+              className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex-shrink-0"
+            >
+              Đổi mật khẩu
+            </button>
           </div>
         </div>
       );

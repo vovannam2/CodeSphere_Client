@@ -24,7 +24,7 @@ const GlobalLeaderboardTable = ({ highlightUserId }: GlobalLeaderboardTableProps
         setLeaderboard(data);
       } catch (error: any) {
         console.error('Error fetching global leaderboard:', error);
-        toast.error('Không thể tải bảng xếp hạng toàn cục');
+        toast.error('Unable to load global leaderboard');
         setLeaderboard([]);
       } finally {
         setIsLoading(false);
@@ -69,9 +69,9 @@ const GlobalLeaderboardTable = ({ highlightUserId }: GlobalLeaderboardTableProps
       HARD: 'text-red-600 bg-red-50',
     };
     const labels = {
-      EASY: 'Dễ',
-      MEDIUM: 'Trung bình',
-      HARD: 'Khó',
+      EASY: 'Easy',
+      MEDIUM: 'Medium',
+      HARD: 'Hard',
     };
     return (
       <span className={`px-2 py-0.5 rounded text-xs font-medium ${colors[level as keyof typeof colors] || 'text-gray-600 bg-gray-50'}`}>
@@ -92,8 +92,8 @@ const GlobalLeaderboardTable = ({ highlightUserId }: GlobalLeaderboardTableProps
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
         <FiAward className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-gray-700 mb-2">Chưa có dữ liệu</h3>
-        <p className="text-gray-500">Chưa có ai giải đúng bài tập nào</p>
+        <h3 className="text-lg font-semibold text-gray-700 mb-2">No data yet</h3>
+        <p className="text-gray-500">No one has solved any problems yet</p>
       </div>
     );
   }
@@ -105,16 +105,16 @@ const GlobalLeaderboardTable = ({ highlightUserId }: GlobalLeaderboardTableProps
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Hạng
+                Rank
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Người dùng
+                User
               </th>
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Tổng số bài đã giải
+                Total Solved
               </th>
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Theo độ khó
+                By Difficulty
               </th>
             </tr>
           </thead>
@@ -140,7 +140,7 @@ const GlobalLeaderboardTable = ({ highlightUserId }: GlobalLeaderboardTableProps
                           <span className="text-sm font-medium text-gray-900">{entry.username}</span>
                           {isHighlighted && (
                             <span className="px-2 py-0.5 bg-yellow-100 text-yellow-800 text-xs font-medium rounded">
-                              Bạn
+                              You
                             </span>
                           )}
                         </div>

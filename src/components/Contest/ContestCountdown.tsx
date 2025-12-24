@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 interface ContestCountdownProps {
   targetTime: string; // ISO string
@@ -14,8 +14,13 @@ const ContestCountdown = ({ targetTime, onComplete, showDays = true }: ContestCo
     seconds: 0,
   });
   const [isExpired, setIsExpired] = useState(false);
+  const onCompleteCalledRef = useRef(false);
 
   useEffect(() => {
+    // Reset onComplete flag when targetTime changes
+    onCompleteCalledRef.current = false;
+    setIsExpired(false);
+
     const calculateTimeLeft = () => {
       const target = new Date(targetTime).getTime();
       const now = new Date().getTime();
@@ -24,7 +29,11 @@ const ContestCountdown = ({ targetTime, onComplete, showDays = true }: ContestCo
       if (difference <= 0) {
         setIsExpired(true);
         setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-        if (onComplete) onComplete();
+        // Chỉ gọi onComplete một lần
+        if (onComplete && !onCompleteCalledRef.current) {
+          onCompleteCalledRef.current = true;
+          onComplete();
+        }
         return;
       }
 

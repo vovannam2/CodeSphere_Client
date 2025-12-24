@@ -21,11 +21,11 @@ export const adminApi = {
   },
 
   // Categories (admin)
-  createCategory: async (payload: { name: string; slug: string; parentId?: number }) => {
+  createCategory: async (payload: { name: string }) => {
     const res = await apiClient.post<DataResponse<CategoryResponse>>('/admin/categories', payload);
     return res.data.data!;
   },
-  updateCategory: async (id: number, payload: { name?: string; slug?: string; parentId?: number }) => {
+  updateCategory: async (id: number, payload: { name?: string }) => {
     const res = await apiClient.put<DataResponse<CategoryResponse>>(`/admin/categories/${id}`, payload);
     return res.data.data!;
   },
@@ -34,7 +34,10 @@ export const adminApi = {
     return res.data.data!;
   },
   getProblems: async (page = 0, size = 20, params: Record<string, any> = {}) => {
-    const qp = new URLSearchParams({ page: String(page), size: String(size), ...params }).toString();
+    const queryParams: Record<string, string> = { page: String(page), size: String(size) };
+    if (params.search) queryParams.search = params.search;
+    if (params.isPublic !== undefined) queryParams.isPublic = String(params.isPublic);
+    const qp = new URLSearchParams(queryParams).toString();
     const res = await apiClient.get<DataResponse<PageResponse<ProblemResponse>>>(`/admin/problems?${qp}`);
     return res.data.data!;
   },

@@ -222,7 +222,7 @@ const ProblemDescriptionPanel = ({
                 }
               `}</style>
               <div
-                dangerouslySetInnerHTML={{ __html: problem.content || 'Chưa có nội dung' }}
+                dangerouslySetInnerHTML={{ __html: problem.content || 'No content yet' }}
                 className="text-gray-700"
               />
             </div>
@@ -251,7 +251,7 @@ const ProblemDescriptionPanel = ({
           <div className="space-y-4">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-gray-900">
-                {contestId ? 'Lịch sử Submissions (Contest)' : 'Lịch sử Submissions'}
+                {contestId ? 'Submission History (Contest)' : 'Submission History'}
               </h2>
               {contestId && (
                 <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
@@ -263,12 +263,12 @@ const ProblemDescriptionPanel = ({
             {isLoadingSubmissions ? (
               <div className="flex items-center justify-center py-12">
                 <FiLoader className="w-6 h-6 animate-spin text-gray-400" />
-                <span className="ml-2 text-gray-500">Đang tải...</span>
+                <span className="ml-2 text-gray-500">Loading...</span>
               </div>
             ) : (contestId ? contestSubmissions : submissions).length === 0 ? (
               <div className="text-center py-12 text-gray-500">
-                <p>Chưa có submission nào</p>
-                <p className="text-sm mt-2">Submit code để xem lịch sử ở đây</p>
+                <p>No submissions yet</p>
+                <p className="text-sm mt-2">Submit code to see history here</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -405,8 +405,8 @@ const ProblemDescriptionPanel = ({
                 <FiAward className="w-6 h-6 text-yellow-600" />
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">Bảng xếp hạng</h2>
-                <p className="text-sm text-gray-600">Xem thứ hạng của bạn và các lập trình viên khác</p>
+                <h2 className="text-xl font-semibold text-gray-900">Leaderboard</h2>
+                <p className="text-sm text-gray-600">View your ranking and other programmers</p>
               </div>
             </div>
 

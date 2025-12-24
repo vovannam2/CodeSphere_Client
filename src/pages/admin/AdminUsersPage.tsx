@@ -8,6 +8,7 @@ import { FiSearch, FiFilter, FiX, FiUserPlus, FiMoreVertical, FiShield, FiUserX,
 import AdminStatCard from '@/components/Admin/AdminStatCard';
 import AdminPageHeader from '@/components/Admin/AdminPageHeader';
 import Tooltip from '@/components/Layout/Tooltip';
+import ConfirmModal from '@/components/Modal/ConfirmModal';
 
 const AdminUsersPage = () => {
   const [loading, setLoading] = useState(true);
@@ -19,6 +20,10 @@ const AdminUsersPage = () => {
   const [roleFilter, setRoleFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [actionModal, setActionModal] = useState<{ type: string; user: UserManagementResponse | null }>({ type: '', user: null });
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; user: UserManagementResponse | null }>({
+    isOpen: false,
+    user: null
+  });
   const [newRole, setNewRole] = useState('');
 
   const fetchUsers = async () => {
@@ -80,14 +85,21 @@ const AdminUsersPage = () => {
     }
   };
 
-  const handleDelete = async (user: UserManagementResponse) => {
-    if (!confirm(`Delete user "${user.username}"? This action cannot be undone.`)) return;
+  const handleDeleteClick = (user: UserManagementResponse) => {
+    setDeleteModal({ isOpen: true, user });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteModal.user) return;
+    
     try {
-      await adminApi.deleteUser(user.id);
+      await adminApi.deleteUser(deleteModal.user.id);
       toast.success('User deleted successfully');
       fetchUsers();
+      setDeleteModal({ isOpen: false, user: null });
     } catch (e: any) {
       toast.error(e?.response?.data?.message || 'Failed to delete user');
+      setDeleteModal({ isOpen: false, user: null });
     }
   };
 
@@ -290,7 +302,7 @@ const AdminUsersPage = () => {
                         )}
                         <Tooltip text="Delete User" position="top">
                           <button
-                            onClick={() => setActionModal({ type: 'delete', user })}
+                            onClick={() => handleDeleteClick(user)}
                             className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
                           >
                             <FiX size={18} />
@@ -366,8 +378,7 @@ const AdminUsersPage = () => {
                 </div>
               ) : (
                 <p className="text-slate-600">
-                  Are you sure you want to {actionModal.type} user <span className="font-bold text-slate-900">@{actionModal.user.username}</span>? 
-                  {actionModal.type === 'delete' && ' This action is irreversible.'}
+                  Are you sure you want to {actionModal.type} user <span className="font-bold text-slate-900">@{actionModal.user.username}</span>?
                 </p>
               )}
             </div>
@@ -382,10 +393,9 @@ const AdminUsersPage = () => {
                 onClick={() => {
                   if (actionModal.type === 'block') handleBlock(actionModal.user!);
                   else if (actionModal.type === 'role') handleChangeRole();
-                  else if (actionModal.type === 'delete') handleDelete(actionModal.user!);
                 }}
                 className={`px-5 py-2.5 text-sm font-bold text-white rounded-xl transition-all shadow-lg ${
-                  actionModal.type === 'delete' || actionModal.type === 'block' 
+                  actionModal.type === 'block' 
                     ? 'bg-rose-600 hover:bg-rose-700 shadow-rose-600/20' 
                     : 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/20'
                 }`}
@@ -395,6 +405,19 @@ const AdminUsersPage = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteModal.isOpen && deleteModal.user && (
+        <ConfirmModal
+          isOpen={deleteModal.isOpen}
+          onClose={() => setDeleteModal({ isOpen: false, user: null })}
+          onConfirm={handleDeleteConfirm}
+          title="Delete User"
+          message={`Are you sure you want to delete user "${deleteModal.user.username}"? This action is permanent and cannot be undone.`}
+          confirmButtonText="Delete"
+          confirmButtonColor="red"
+        />
       )}
     </div>
   );

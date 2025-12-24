@@ -13,6 +13,8 @@ export const ROUTES = {
   HOME: '/',
   LOGIN: '/login',
   REGISTER: '/register',
+  FORGOT_PASSWORD: '/forgot-password',
+  CHANGE_PASSWORD: '/change-password',
   OAUTH2_REDIRECT: '/oauth2/redirect',
   PROBLEMS: '/problems',
   CONTEST: '/contest',

@@ -61,8 +61,8 @@ const ReviewPanel = ({
     return (
       <div className="flex flex-col items-center justify-center h-full text-gray-500">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-        <p className="text-lg font-medium">Đang đánh giá code...</p>
-        <p className="text-sm mt-2 text-gray-400">Vui lòng đợi trong giây lát</p>
+        <p className="text-lg font-medium">Reviewing code...</p>
+        <p className="text-sm mt-2 text-gray-400">Please wait a moment</p>
       </div>
     );
   }
@@ -71,8 +71,8 @@ const ReviewPanel = ({
     return (
       <div className="flex flex-col items-center justify-center h-full text-gray-500">
         <FiCheckCircle className="w-16 h-16 mb-4 text-gray-400" />
-        <p className="text-lg font-medium">Chưa có đánh giá</p>
-        <p className="text-sm mt-2">Nhấn "Review Code" để xem đánh giá về code của bạn</p>
+        <p className="text-lg font-medium">No review yet</p>
+        <p className="text-sm mt-2">Click "Review Code" to see feedback about your code</p>
       </div>
     );
   }
@@ -86,8 +86,8 @@ const ReviewPanel = ({
               <FiCheckCircle className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Đánh giá Code</h2>
-              <p className="text-sm text-gray-600 mt-0.5">Phân tích chi tiết về code của bạn</p>
+              <h2 className="text-2xl font-bold text-gray-900">Code Review</h2>
+              <p className="text-sm text-gray-600 mt-0.5">Detailed analysis of your code</p>
             </div>
           </div>
           {selectedSuggestions.size > 0 && (
@@ -104,15 +104,15 @@ const ReviewPanel = ({
               className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <FiRefreshCw className={`w-4 h-4 ${isRefactoring ? 'animate-spin' : ''}`} />
-              {isRefactoring ? 'Đang refactor...' : `Refactor ${selectedSuggestions.size} mục đã chọn`}
+              {isRefactoring ? 'Refactoring...' : `Refactor ${selectedSuggestions.size} selected items`}
             </button>
           )}
         </div>
         {selectedSuggestions.size > 0 && (
           <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
             <p className="text-sm text-purple-700">
-              💡 Đã chọn <strong>{selectedSuggestions.size}</strong> gợi ý để refactor. 
-              Nhấn nút "Refactor" để cải thiện code theo các gợi ý đã chọn (chỉ 1 lần gọi API).
+              💡 <strong>{selectedSuggestions.size}</strong> suggestions selected for refactoring. 
+              Click the "Refactor" button to improve code based on selected suggestions (only 1 API call).
             </p>
           </div>
         )}
@@ -161,7 +161,7 @@ const ReviewPanel = ({
                             : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-300'
                         }`}
                       >
-                        {isSelected ? '✓ Đã chọn' : 'Chọn'}
+                        {isSelected ? '✓ Selected' : 'Select'}
                       </button>
                     </div>
                   )}

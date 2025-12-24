@@ -82,7 +82,7 @@ const CommentList = ({ problemId }: CommentListProps) => {
       console.error('Error fetching comments:', error);
       // Không hiển thị error nếu là 401 (chưa đăng nhập)
       if (error.response?.status !== 401) {
-        toast.error('Không thể tải bình luận');
+        toast.error('Unable to load comments');
       }
       setComments([]);
     } finally {
@@ -102,11 +102,11 @@ const CommentList = ({ problemId }: CommentListProps) => {
         content,
         parentId: null,
       });
-      toast.success('Đã gửi bình luận');
+      toast.success('Comment sent');
       // Refresh comments
       await fetchComments();
     } catch (error: any) {
-      const message = error.response?.data?.message || 'Lỗi khi gửi bình luận';
+      const message = error.response?.data?.message || 'Error sending comment';
       toast.error(message);
       throw error;
     } finally {
@@ -127,7 +127,7 @@ const CommentList = ({ problemId }: CommentListProps) => {
       <div className="flex items-center gap-2 mb-4">
         <FiMessageCircle className="w-5 h-5 text-gray-600" />
         <h3 className="text-lg font-semibold text-gray-900">
-          Bình luận ({comments.length})
+          Comments ({comments.length})
         </h3>
       </div>
 
@@ -142,8 +142,8 @@ const CommentList = ({ problemId }: CommentListProps) => {
       {comments.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
           <FiMessageCircle className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-          <p>Chưa có bình luận nào</p>
-          <p className="text-sm mt-1">Hãy là người đầu tiên bình luận!</p>
+          <p>No comments yet</p>
+          <p className="text-sm mt-1">Be the first to comment!</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -166,17 +166,17 @@ const CommentList = ({ problemId }: CommentListProps) => {
             disabled={currentPage === 0}
             className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Trước
+            Previous
           </button>
           <span className="text-sm text-gray-600">
-            Trang {currentPage + 1} / {totalPages}
+            Page {currentPage + 1} / {totalPages}
           </span>
           <button
             onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
             disabled={currentPage === totalPages - 1}
             className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Sau
+            Next
           </button>
         </div>
       )}

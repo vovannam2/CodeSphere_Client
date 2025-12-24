@@ -2,7 +2,16 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { authApi } from '@/apis/auth.api';
 import { storage } from '@/utils/storage';
-import type { LoginRequest, RegisterRequest, User } from '@/types/auth.types';
+import type {
+  LoginRequest,
+  RegisterInitRequest,
+  RegisterVerifyRequest,
+  RegisterRequest,
+  User,
+  ForgotPasswordInitRequest,
+  ForgotPasswordVerifyRequest,
+  ChangePasswordRequest,
+} from '@/types/auth.types';
 import toast from 'react-hot-toast';
 
 interface AuthContextType {
@@ -10,7 +19,12 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (data: LoginRequest) => Promise<User>;
-  register: (data: RegisterRequest) => Promise<User>;
+  register: (data: RegisterRequest) => Promise<User>; // legacy
+  registerInit: (data: RegisterInitRequest) => Promise<void>;
+  verifyRegister: (data: RegisterVerifyRequest) => Promise<User>;
+  forgotPasswordInit: (data: ForgotPasswordInitRequest) => Promise<void>;
+  forgotPasswordVerify: (data: ForgotPasswordVerifyRequest) => Promise<void>;
+  changePassword: (data: ChangePasswordRequest) => Promise<void>;
   logout: () => void;
   googleAuth: () => Promise<void>;
 }
@@ -111,6 +125,74 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const registerInit = async (data: RegisterInitRequest): Promise<void> => {
+    try {
+      await authApi.registerInit(data);
+      toast.success('Đã gửi OTP đến email của bạn');
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Gửi OTP thất bại';
+      toast.error(message);
+      throw error;
+    }
+  };
+
+  const verifyRegister = async (data: RegisterVerifyRequest): Promise<User> => {
+    try {
+      const response = await authApi.registerVerify(data);
+      storage.setToken(response.token);
+      storage.setRefreshToken(response.refreshToken);
+
+      const userData: User = {
+        id: response.userId,
+        email: response.email,
+        username: response.username,
+        role: response.role,
+      };
+
+      storage.setUser(userData);
+      setUser(userData);
+      toast.success('Xác thực OTP thành công!');
+      return userData;
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Xác thực OTP thất bại';
+      toast.error(message);
+      throw error;
+    }
+  };
+
+  const forgotPasswordInit = async (data: ForgotPasswordInitRequest): Promise<void> => {
+    try {
+      await authApi.forgotPasswordInit(data);
+      toast.success('Đã gửi OTP đặt lại mật khẩu');
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Gửi OTP thất bại';
+      toast.error(message);
+      throw error;
+    }
+  };
+
+  const forgotPasswordVerify = async (data: ForgotPasswordVerifyRequest): Promise<void> => {
+    try {
+      await authApi.forgotPasswordVerify(data);
+      toast.success('Đặt lại mật khẩu thành công');
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Xác thực OTP thất bại';
+      toast.error(message);
+      throw error;
+    }
+  };
+
+  const changePassword = async (data: ChangePasswordRequest): Promise<void> => {
+    try {
+      await authApi.changePassword(data);
+      toast.success('Đổi mật khẩu thành công');
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Đổi mật khẩu thất bại';
+      toast.error(message);
+      throw error;
+    }
+  };
+
   const logout = () => {
     storage.clear();
     setUser(null);
@@ -135,6 +217,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isLoading,
     login,
     register,
+    registerInit,
+    verifyRegister,
+    forgotPasswordInit,
+    forgotPasswordVerify,
+    changePassword,
     logout,
     googleAuth,
   };

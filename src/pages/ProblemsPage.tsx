@@ -22,6 +22,7 @@ import {
   FiStar
 } from 'react-icons/fi';
 import bannerProblem from '@/assets/Banner_Problem.png';
+import RecommendationList from '@/components/Recommendation/RecommendationList';
 
 const ProblemsPage = () => {
   const [searchParams] = useSearchParams();
@@ -333,6 +334,11 @@ const ProblemsPage = () => {
             </div>
           </div>
 
+          {/* Recommendations Section */}
+          <div className="mb-6">
+            <RecommendationList limit={5} />
+          </div>
+
         {/* Topic Filters - Top Section */}
         <div className="py-6 border-b border-gray-200">
           <div className="flex items-center gap-2 overflow-x-auto pb-2">
@@ -487,8 +493,8 @@ const ProblemsPage = () => {
                             <h3 className="text-base font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
                               {getCleanTitle(problem.title, problem.code)}
                             </h3>
-                            {problem.isContest && (
-                              <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium text-blue-700 bg-blue-100 rounded">
+                            {problem.isPublic === false && (
+                              <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium text-orange-700 bg-orange-100 rounded">
                                 Contest-only
                               </span>
                             )}
@@ -512,27 +518,10 @@ const ProblemsPage = () => {
                               )}
                             </div>
                           )}
-
-                          {/* Tags */}
-                          {problem.tags && problem.tags.length > 0 && (
-                            <div className="flex flex-wrap items-center gap-2">
-                              {problem.tags.slice(0, 2).map((tag) => (
-                                <span
-                                  key={tag.id}
-                                  className="px-2.5 py-1 rounded-md text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors"
-                                >
-                                  {tag.name}
-                                </span>
-                              ))}
-                            </div>
-                          )}
                         </div>
 
                         {/* Right Side Info */}
                         <div className="flex items-center gap-3 flex-shrink-0">
-                          {/* Acceptance Rate */}
-                          <span className="text-sm text-gray-600 min-w-[50px] text-right">49.9%</span>
-                          
                           {/* Difficulty Badge */}
                           {getLevelBadge(problem.level)}
                         </div>

@@ -7,7 +7,7 @@ import { commentApi } from '@/apis/comment.api';
 import type { Comment } from '@/types/comment.types';
 import toast from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
-import { vi } from 'date-fns/locale/vi';
+import { enUS } from 'date-fns/locale';
 
 interface CommentItemProps {
   comment: Comment;
@@ -53,11 +53,11 @@ const CommentItem = ({ comment, problemId, postId, onUpdate, onDelete, level = 0
           parentId: comment.id,
         });
       }
-      toast.success('Đã gửi bình luận');
+      toast.success('Comment sent');
       setIsReplying(false);
       onUpdate();
     } catch (error: any) {
-      const message = error.response?.data?.message || 'Lỗi khi gửi bình luận';
+      const message = error.response?.data?.message || 'Error sending comment';
       toast.error(message);
       throw error;
     } finally {
@@ -70,11 +70,11 @@ const CommentItem = ({ comment, problemId, postId, onUpdate, onDelete, level = 0
     try {
       setIsSubmitting(true);
       await commentApi.updateComment(comment.id, { content: editContent });
-      toast.success('Đã cập nhật bình luận');
+      toast.success('Comment updated');
       setIsEditing(false);
       onUpdate();
     } catch (error: any) {
-      const message = error.response?.data?.message || 'Lỗi khi cập nhật bình luận';
+      const message = error.response?.data?.message || 'Error updating comment';
       toast.error(message);
     } finally {
       setIsSubmitting(false);
@@ -85,20 +85,20 @@ const CommentItem = ({ comment, problemId, postId, onUpdate, onDelete, level = 0
     const hasRepliesToDelete = hasReplies;
     const replyCount = comment.replyCount || comment.replies?.length || 0;
     const confirmMessage = hasRepliesToDelete
-      ? `Bạn có chắc chắn muốn xóa bình luận này? Tất cả ${replyCount} phản hồi cũng sẽ bị xóa.`
-      : 'Bạn có chắc chắn muốn xóa bình luận này?';
+      ? `Are you sure you want to delete this comment? All ${replyCount} replies will also be deleted.`
+      : 'Are you sure you want to delete this comment?';
     
     if (!confirm(confirmMessage)) return;
     try {
       setIsDeleting(true);
       await commentApi.deleteComment(comment.id);
-      toast.success(hasRepliesToDelete ? `Đã xóa bình luận và ${replyCount} phản hồi` : 'Đã xóa bình luận');
+      toast.success(hasRepliesToDelete ? `Deleted comment and ${replyCount} replies` : 'Comment deleted');
       onUpdate();
       if (onDelete) {
         onDelete();
       }
     } catch (error: any) {
-      const message = error.response?.data?.message || 'Lỗi khi xóa bình luận';
+      const message = error.response?.data?.message || 'Error deleting comment';
       toast.error(message);
     } finally {
       setIsDeleting(false);
@@ -127,11 +127,11 @@ const CommentItem = ({ comment, problemId, postId, onUpdate, onDelete, level = 0
                 <span className="text-sm text-gray-500 ml-2">
                   {formatDistanceToNow(new Date(comment.createdAt), { 
                     addSuffix: true, 
-                    locale: vi 
+                    locale: enUS 
                   })}
                 </span>
                 {comment.updatedAt !== comment.createdAt && (
-                  <span className="text-xs text-gray-400 ml-2">(đã chỉnh sửa)</span>
+                  <span className="text-xs text-gray-400 ml-2">(edited)</span>
                 )}
               </div>
               {/* Luôn hiển thị icon 3 chấm, nhưng chỉ cho phép edit/delete nếu là owner */}
@@ -139,7 +139,7 @@ const CommentItem = ({ comment, problemId, postId, onUpdate, onDelete, level = 0
                 <button
                   onClick={() => setShowMenu(!showMenu)}
                   className="p-1 text-gray-400 hover:text-gray-600 rounded transition-colors"
-                  title="Tùy chọn"
+                  title="Options"
                 >
                   <FiMoreVertical className="w-4 h-4" />
                 </button>
@@ -160,7 +160,7 @@ const CommentItem = ({ comment, problemId, postId, onUpdate, onDelete, level = 0
                             className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
                           >
                             <FiEdit2 className="w-4 h-4" />
-                            Chỉnh sửa
+                            Edit
                           </button>
                           <button
                             onClick={handleDelete}
@@ -168,12 +168,12 @@ const CommentItem = ({ comment, problemId, postId, onUpdate, onDelete, level = 0
                             className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2 disabled:opacity-50"
                           >
                             <FiTrash2 className="w-4 h-4" />
-                            {isDeleting ? 'Đang xóa...' : 'Xóa'}
+                            {isDeleting ? 'Deleting...' : 'Delete'}
                           </button>
                         </>
                       ) : (
                         <div className="px-4 py-2 text-sm text-gray-500">
-                          Chỉ chủ sở hữu mới có thể chỉnh sửa
+                          Only the owner can edit
                         </div>
                       )}
                     </div>
@@ -197,7 +197,7 @@ const CommentItem = ({ comment, problemId, postId, onUpdate, onDelete, level = 0
                     disabled={!editContent.trim() || isSubmitting}
                     className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isSubmitting ? 'Đang lưu...' : 'Lưu'}
+                    {isSubmitting ? 'Saving...' : 'Save'}
                   </button>
                   <button
                     onClick={() => {
@@ -207,7 +207,7 @@ const CommentItem = ({ comment, problemId, postId, onUpdate, onDelete, level = 0
                     disabled={isSubmitting}
                     className="px-4 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-300 disabled:opacity-50"
                   >
-                    Hủy
+                    Cancel
                   </button>
                 </div>
               </div>
@@ -222,7 +222,7 @@ const CommentItem = ({ comment, problemId, postId, onUpdate, onDelete, level = 0
               className="flex items-center gap-1 text-sm text-gray-600 hover:text-blue-600 transition-colors"
             >
               <FiCornerDownRight className="w-4 h-4" />
-              Trả lời
+              Reply
             </button>
             {hasReplies && (
               <button
@@ -232,12 +232,12 @@ const CommentItem = ({ comment, problemId, postId, onUpdate, onDelete, level = 0
                 {showReplies ? (
                   <>
                     <FiChevronUp className="w-4 h-4" />
-                    Ẩn {comment.replyCount || comment.replies?.length || 0} phản hồi
+                    Hide {comment.replyCount || comment.replies?.length || 0} replies
                   </>
                 ) : (
                   <>
                     <FiChevronDown className="w-4 h-4" />
-                    Xem {comment.replyCount || comment.replies?.length || 0} phản hồi
+                    View {comment.replyCount || comment.replies?.length || 0} replies
                   </>
                 )}
               </button>
@@ -252,7 +252,7 @@ const CommentItem = ({ comment, problemId, postId, onUpdate, onDelete, level = 0
                   parentId={comment.id}
                   onSubmit={handleReply}
                   onCancel={() => setIsReplying(false)}
-                  placeholder="Viết phản hồi..."
+                  placeholder="Write a reply..."
                   isSubmitting={isSubmitting}
                 />
             </div>

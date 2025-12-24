@@ -5,8 +5,10 @@ import ProtectedRoute from './ProtectedRoute';
 import HomePage from '@/pages/HomePage';
 import LoginPage from '@/pages/LoginPage';
 import RegisterPage from '@/pages/RegisterPage';
+import ForgotPasswordPage from '@/pages/ForgotPasswordPage';
 import OAuth2RedirectPage from '@/pages/OAuth2RedirectPage';
 import ProblemsPage from '@/pages/ProblemsPage';
+import ChangePasswordPage from '@/pages/ChangePasswordPage';
 
 import AdminProtectedRoute from '@/routes/AdminProtectedRoute';
 import AdminLayout from '@/layouts/LayoutsAdmin/AdminLayout';
@@ -29,6 +31,7 @@ import MessagesPage from '@/pages/MessagesPage';
 import LeaderboardPage from '@/pages/LeaderboardPage';
 import ContestPage from '@/pages/ContestPage';
 import ContestDetailPage from '@/pages/ContestDetailPage';
+import NotificationsPage from '@/pages/NotificationsPage';
 import { ROUTES } from '@/utils/constants';
 import ProblemDetailPage from '@/pages/ProblemDetailPage';
 
@@ -58,6 +61,14 @@ const router = createBrowserRouter([
     ),
   },
   {
+    path: ROUTES.FORGOT_PASSWORD,
+    element: (
+      <PublicRoute>
+        <ForgotPasswordPage />
+      </PublicRoute>
+    ),
+  },
+  {
     path: ROUTES.OAUTH2_REDIRECT,
     element: <OAuth2RedirectPage />,
   },
@@ -81,6 +92,14 @@ const router = createBrowserRouter([
         <MainLayout>
           <ProfilePage />
         </MainLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: ROUTES.CHANGE_PASSWORD,
+    element: (
+      <ProtectedRoute>
+        <ChangePasswordPage />
       </ProtectedRoute>
     ),
   },
@@ -214,6 +233,14 @@ const router = createBrowserRouter([
         <MainLayout>
           <MessagesPage />
         </MainLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: ROUTES.NOTIFICATIONS,
+    element: (
+      <ProtectedRoute>
+        <NotificationsPage />
       </ProtectedRoute>
     ),
   },

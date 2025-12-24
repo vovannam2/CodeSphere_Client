@@ -5,7 +5,7 @@ import { leaderboardApi } from '@/apis/leaderboard.api';
 import type { LeaderboardResponse } from '@/types/leaderboard.types';
 import Loading from '@/components/Loading';
 import { formatDistanceToNow } from 'date-fns';
-import { vi } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
 import toast from 'react-hot-toast';
 import Avatar from '@/components/Avatar';
 
@@ -28,7 +28,7 @@ const LeaderboardTable = ({ problemId, highlightUserId, compact = false }: Leade
         setLeaderboard(data);
       } catch (error: any) {
         console.error('Error fetching leaderboard:', error);
-        toast.error('Không thể tải bảng xếp hạng');
+        toast.error('Unable to load leaderboard');
         setLeaderboard([]);
       } finally {
         setIsLoading(false);
@@ -82,7 +82,7 @@ const LeaderboardTable = ({ problemId, highlightUserId, compact = false }: Leade
 
   const formatTime = (dateString: string) => {
     try {
-      return formatDistanceToNow(new Date(dateString), { addSuffix: true, locale: vi });
+      return formatDistanceToNow(new Date(dateString), { addSuffix: true, locale: enUS });
     } catch {
       return dateString;
     }
@@ -100,8 +100,8 @@ const LeaderboardTable = ({ problemId, highlightUserId, compact = false }: Leade
     return (
       <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
         <FiAward className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-        <p className="text-gray-500 font-medium">Chưa có ai submit bài này</p>
-        <p className="text-sm text-gray-400 mt-1">Hãy là người đầu tiên!</p>
+        <p className="text-gray-500 font-medium">No one has submitted this problem yet</p>
+        <p className="text-sm text-gray-400 mt-1">Be the first one!</p>
       </div>
     );
   }

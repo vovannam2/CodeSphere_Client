@@ -9,6 +9,7 @@ import { FiPlus, FiEdit, FiTrash2, FiEye, FiEyeOff, FiExternalLink, FiSearch, Fi
 import Tooltip from '@/components/Layout/Tooltip';
 import AdminStatCard from '@/components/Admin/AdminStatCard';
 import AdminPageHeader from '@/components/Admin/AdminPageHeader';
+import ConfirmModal from '@/components/Modal/ConfirmModal';
 
 const AdminContestsPage = () => {
   const [loading, setLoading] = useState(true);
@@ -16,8 +17,14 @@ const AdminContestsPage = () => {
   const [page, setPage] = useState(0);
   const [size] = useState(20);
   const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; contestId: number | null; contestTitle: string | null }>({
+    isOpen: false,
+    contestId: null,
+    contestTitle: null
+  });
   const navigate = useNavigate();
 
   const fetchContests = async () => {
@@ -25,10 +32,14 @@ const AdminContestsPage = () => {
     try {
       const data = await adminApi.getContests(page, size, search || undefined, typeFilter || undefined);
       if (data && 'content' in data) {
-        setContests((data as PageResponse<ContestResponse>).content);
-        setTotalPages((data as PageResponse<ContestResponse>).totalPages);
+        const pageData = data as PageResponse<ContestResponse>;
+        setContests(pageData.content);
+        setTotalPages(pageData.totalPages);
+        setTotalElements(pageData.totalElements);
       } else {
         setContests([]);
+        setTotalPages(0);
+        setTotalElements(0);
       }
     } catch (e: any) {
       console.error(e);
@@ -47,14 +58,21 @@ const AdminContestsPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, search, typeFilter]);
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('Delete this contest? This action cannot be undone.')) return;
+  const handleDeleteClick = (id: number, title: string) => {
+    setDeleteModal({ isOpen: true, contestId: id, contestTitle: title });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteModal.contestId) return;
+    
     try {
-      await adminApi.deleteContest(id);
+      await adminApi.deleteContest(deleteModal.contestId);
       toast.success('Contest deleted');
       fetchContests();
+      setDeleteModal({ isOpen: false, contestId: null, contestTitle: null });
     } catch (e: any) {
       toast.error(e?.response?.data?.message || 'Failed to delete contest');
+      setDeleteModal({ isOpen: false, contestId: null, contestTitle: null });
     }
   };
 
@@ -277,7 +295,7 @@ const AdminContestsPage = () => {
                         </Tooltip>
                         <Tooltip text="Delete" position="top">
                           <button
-                            onClick={() => handleDelete(contest.id)}
+                            onClick={() => handleDeleteClick(contest.id, contest.title)}
                             className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
                           >
                             <FiTrash2 size={18} />
@@ -295,7 +313,7 @@ const AdminContestsPage = () => {
         {/* Pagination */}
         <div className="p-4 bg-slate-50/30 border-t border-slate-50 flex items-center justify-between">
           <p className="text-xs font-medium text-slate-500">
-            Showing <span className="text-slate-900">{contests.length}</span> of <span className="text-slate-900">{totalPages * size}</span> contests
+            Showing <span className="text-slate-900">{contests.length}</span> of <span className="text-slate-900">{totalElements}</span> contests
           </p>
           <div className="flex items-center gap-2">
             <button
@@ -328,6 +346,19 @@ const AdminContestsPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteModal.isOpen && deleteModal.contestId && (
+        <ConfirmModal
+          isOpen={deleteModal.isOpen}
+          onClose={() => setDeleteModal({ isOpen: false, contestId: null, contestTitle: null })}
+          onConfirm={handleDeleteConfirm}
+          title="Delete Contest"
+          message={`Are you sure you want to delete "${deleteModal.contestTitle}"? If this contest has registrations, the deletion will be blocked. This action is permanent and cannot be undone.`}
+          confirmButtonText="Delete"
+          confirmButtonColor="red"
+        />
+      )}
     </div>
   );
 };
